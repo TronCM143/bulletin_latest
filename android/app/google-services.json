@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1021715121254",
+    "project_id": "bulletin-8e636",
+    "storage_bucket": "bulletin-8e636.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021715121254:android:9b9f6583d2348a7044d9a7",
+        "android_client_info": {
+          "package_name": "com.example.bulletin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYwjYk7UEErY8_uH8XQhpfJLCPg6aD4sE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
