@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Importing intl package for date formatting
 import 'add_post.dart'; // Ensure this is the correct path for AddPostDialog
 
 class CreatorHomePage extends StatelessWidget {
@@ -99,9 +100,10 @@ class CreatorHomePage extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 Text(
                                   postData['timestamp'] != null
-                                      ? (postData['timestamp'] as Timestamp)
-                                          .toDate()
-                                          .toString()
+                                      ? DateFormat('MMMM-dd-yyyy hh:mm a')
+                                          .format((postData['timestamp']
+                                                  as Timestamp)
+                                              .toDate())
                                       : 'N/A', // Use N/A if timestamp is null
                                   style: const TextStyle(color: Colors.grey),
                                 ),
