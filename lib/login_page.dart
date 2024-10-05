@@ -1,8 +1,8 @@
-import 'create_account_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'creators folder/creator_home_page.dart';
 import 'student folder/stud_home.dart'; // Import your HomePage for students
+import 'create_account_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,9 +10,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  bool _rememberMe = false;
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true; // For toggling password visibility
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
@@ -95,64 +98,222 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('User Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TextFormField(
-                controller: _idController,
-                decoration:
-                    InputDecoration(labelText: 'School ID or Club Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your School ID or Club Email';
-                  }
-                  return null;
-                },
+      resizeToAvoidBottomInset:
+          false, // Prevents layout distortion when keyboard appears
+      body: Stack(
+        fit: StackFit.expand, // Ensures the background covers the whole screen
+        children: [
+          // Background image using Network Image
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage(
+                    'https://2.bp.blogspot.com/-NWl1vNjTW2I/Wo1n0TGTdEI/AAAAAAAAAF8/lgCLEeq5OV8xllNuIc5jDIPFPApY-5HdgCLcBGAs/s1600/ndmu.jpg'),
+                fit: BoxFit.cover,
               ),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _login,
-                child: Text('Login'),
-              ),
-              SizedBox(height: 10),
-              // Add the Create Account button here
-              TextButton(
-                onPressed: () {
-                  // Navigate to CreateAccountPage
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CreateAccountPage(),
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Vertically center the content
+              crossAxisAlignment:
+                  CrossAxisAlignment.center, // Horizontally center the content
+              children: [
+                Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.85, // 85% width of the screen
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * 0.30,
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.black
+                              .withOpacity(0.3), // Transparent background
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.3), // Soft border
+                          ),
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // Heading
+                              Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              // Username/ID Input Field
+                              TextFormField(
+                                controller: _idController,
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'School ID', // This is the placeholder that disappears
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.8),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(35),
+                                  ),
+                                  prefixIcon: Icon(Icons.person),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your Username';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: 10),
+                              // Password Input Field
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Password', // This is the placeholder that disappears
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.8),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(35),
+                                  ),
+                                  prefixIcon: Icon(Icons.lock),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility_off
+                                          : Icons.visibility,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter your password';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: 5),
+                              // Remember Me and Forgot Password Row
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      // Toggle the checkbox when the text is tapped
+                                      setState(() {
+                                        _rememberMe = !_rememberMe;
+                                      });
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Checkbox(
+                                          value: _rememberMe,
+                                          onChanged: (val) {
+                                            setState(() {
+                                              _rememberMe = val!;
+                                            });
+                                          },
+                                        ),
+                                        Text(
+                                          'Remember Me',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {},
+                                    child: Text(
+                                      'Forgot Password?',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5),
+                              // Sign In Button
+                              SizedBox(
+                                width: 200, // Set your desired width here
+                                child: ElevatedButton(
+                                  onPressed: _login,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(35),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 5),
+                              // Social Media Login Row
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Dont Have Account?',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  SizedBox(
+                                    // You can keep or remove the SizedBox if not needed
+                                    // Set your desired height if needed
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                CreateAccountPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: Text(
+                                        'Sign Up',
+                                        style: TextStyle(
+                                          color: Colors
+                                              .white, // Set the text color to white
+                                          fontSize:
+                                              16, // Adjust font size as needed
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                },
-                child: Text(
-                  'Create Account',
-                  style: TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
