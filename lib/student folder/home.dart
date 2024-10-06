@@ -1,57 +1,67 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'functions.dart'; // Import the functions file
+import 'functions.dart'; // Ensure this import is correct
 
-class CreatorHomePage extends StatefulWidget {
-  final String clubEmail; // Club email to identify the creator
+class StudentHomePage extends StatefulWidget {
+  final String schoolId; // School ID to identify the student
+  final String studentDepartment; // Added department parameter
 
-  const CreatorHomePage({super.key, required this.clubEmail});
+  const StudentHomePage({
+    super.key,
+    required this.schoolId,
+    required this.studentDepartment, // Use the passed department here
+  });
 
   @override
-  _CreatorHomePageState createState() => _CreatorHomePageState();
+  _StudentHomePageState createState() => _StudentHomePageState();
 }
 
-class _CreatorHomePageState extends State<CreatorHomePage> {
-  // State variables to store creator's information
-  String clubName = 'Loading...';
+class _StudentHomePageState extends State<StudentHomePage> {
+  String name = 'Loading...';
   String department = 'Loading...';
   String email = 'Loading...';
-  String? profileImageURL; // Variable to hold the profile image URL
+  String? profileImageURL;
 
   @override
   void initState() {
     super.initState();
-    // Use the fetchCreatorInfo method from CreatorFunctions
-    CreatorFunctions.fetchCreatorInfo(widget.clubEmail, (name, dept, em) {
-      setState(() {
-        clubName = name;
-        department = dept; // Store the department
-        email = em;
-      });
-      _loadProfileImage(); // Load the profile image after fetching info
-    }, context);
+    _fetchStudentInfo();
   }
 
-  // Method to load the profile image URL from Firestore
-  Future<void> _loadProfileImage() async {
+  Future<void> _fetchStudentInfo() async {
     try {
-      // Get the document from Firestore
-      final creatorDoc = await FirebaseFirestore.instance
-          .collection('creator') // Ensure correct collection name
-          .doc(email) // Use the creator's email as the document ID
+      final studentDoc = await FirebaseFirestore.instance
+          .collection('users_students')
+          .doc(widget.schoolId)
           .get();
 
-      if (creatorDoc.exists) {
-        // Check if 'profileImageURL' field exists
-        if (creatorDoc.data() != null &&
-            creatorDoc.data()!.containsKey('profileImageURL')) {
-          // Set the profile image URL if it exists in Firestore
-          String? imageUrl = creatorDoc.data()!['profileImageURL'];
-          if (isValidImageUrl(imageUrl)) {
-            setState(() {
-              profileImageURL = imageUrl; // Store the valid image URL
-            });
-          }
+      if (studentDoc.exists) {
+        setState(() {
+          name = studentDoc.data()?['name'] ?? 'N/A';
+          department = studentDoc.data()?['department'] ??
+              widget.studentDepartment; // Directly use the passed department
+          email = studentDoc.data()?['email'] ?? 'N/A';
+        });
+        _loadProfileImage();
+      }
+    } catch (e) {
+      print('Error loading student info: $e');
+    }
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final studentDoc = await FirebaseFirestore.instance
+          .collection('users_students')
+          .doc(widget.schoolId)
+          .get();
+
+      if (studentDoc.exists) {
+        String? imageUrl = studentDoc.data()?['profileImageURL'];
+        if (isValidImageUrl(imageUrl)) {
+          setState(() {
+            profileImageURL = imageUrl;
+          });
         }
       }
     } catch (e) {
@@ -59,18 +69,16 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     }
   }
 
-  // Method to check if the image URL is valid
   bool isValidImageUrl(String? url) {
     return url != null &&
         (url.startsWith('http://') || url.startsWith('https://'));
   }
 
-  // Define the method to get the stream for the creator's department
-  Stream<QuerySnapshot> getDepartmentStream(String department) {
+  Stream<QuerySnapshot> getDepartmentStream([String? department]) {
     return FirebaseFirestore.instance
-        .collection(department)
+        .collection(department!) // Use the department name directly
         .where('status', isEqualTo: 'Accepted')
-        .snapshots(); // Get real-time snapshots for accepted posts
+        .snapshots();
   }
 
   @override
@@ -81,28 +89,24 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         actions: [
           IconButton(
             icon: CircleAvatar(
-              radius: 20, // Adjust size as needed
-              backgroundImage: profileImageURL != null &&
-                      profileImageURL!.isNotEmpty
-                  ? NetworkImage(profileImageURL!) // Use the profile image URL
-                  : null, // No image will be displayed if URL is empty
+              radius: 20,
+              backgroundImage:
+                  profileImageURL != null && profileImageURL!.isNotEmpty
+                      ? NetworkImage(profileImageURL!)
+                      : null,
               child: profileImageURL == null || profileImageURL!.isEmpty
                   ? const Icon(
                       Icons.person,
-                      size: 24, // Adjust icon size if needed
-                      color: Colors
-                          .white, // Color of the icon when no image is available
+                      size: 24,
+                      color: Colors.white,
                     )
-                  : null, // No child if profile image exists
+                  : null,
             ),
             onPressed: () {
-              // Use the showProfileDialog method from CreatorFunctions
-              CreatorFunctions.showProfileDialog(
-                context,
-                clubName,
-                department,
-                email,
-              );
+              if (email.isNotEmpty) {
+                StudentFunctions.showProfileDialog(
+                    context, name, department, email);
+              }
             },
             tooltip: 'Profile',
           ),
@@ -112,20 +116,22 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: department.isNotEmpty
-                  ? getDepartmentStream(department) // Call the method here
-                  : null, // No stream if department is not set
+              stream: (department != 'Loading...' && department.isNotEmpty)
+                  ? getDepartmentStream(department) // Ensure valid department
+                  : null,
               builder: (context, departmentSnapshot) {
                 if (departmentSnapshot.connectionState ==
                     ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // List to hold all posts from the department
                 List<DocumentSnapshot> allPosts = [];
-
                 if (departmentSnapshot.hasData) {
                   allPosts = departmentSnapshot.data!.docs; // Directly use docs
+                }
+                if (departmentSnapshot.hasError) {
+                  return Center(
+                      child: Text('Error: ${departmentSnapshot.error}'));
                 }
 
                 // Sort posts by timestamp (newest first)
@@ -187,16 +193,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             ),
           ),
         ],
-      ),
-      // Floating Action Button for adding a post
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'add_post',
-        onPressed: () {
-          // Use the showAddPostDialog method from CreatorFunctions
-          CreatorFunctions.showAddPostDialog(context, widget.clubEmail);
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Add Post',
       ),
     );
   }
