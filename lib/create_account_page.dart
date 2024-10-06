@@ -1,4 +1,4 @@
-import 'package:bulletin/creators%20folder/creator_create_account.dart';
+import 'package:bulletin/creators%20folder/create_account.dart';
 import 'package:bulletin/student%20folder/student_create_account.dart';
 import 'package:flutter/material.dart';
 

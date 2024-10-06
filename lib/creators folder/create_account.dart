@@ -41,7 +41,7 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
             ),
           );
         } else {
-          // Use clubEmail as the UID in the 'creator' collection and add a timestamp
+          // Use clubE mail as the UID in the 'creator' collection and add a timestamp
           await FirebaseFirestore.instance
               .collection('creator')
               .doc(clubEmail)
@@ -92,6 +92,37 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
           key: _formKey,
           child: Column(
             children: [
+              DropdownButtonFormField<String>(
+                value: _selectedDepartment,
+                hint: Text('Select Department'),
+                items: [
+                  DropdownMenuItem(
+                      value: 'CED', child: Text('College of Education')),
+                  DropdownMenuItem(
+                      value: 'CEAC',
+                      child: Text(
+                          'College of Engineering Architechture and Com...')),
+                  DropdownMenuItem(
+                      value: 'CBA',
+                      child: Text('College of Business Administration')),
+                  DropdownMenuItem(
+                      value: 'CAS',
+                      child: Text('College of Arts and Sciences')),
+                  DropdownMenuItem(
+                      value: 'Non Academic', child: Text('Non Academic')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedDepartment = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Please select a department';
+                  }
+                  return null;
+                },
+              ),
               TextFormField(
                 controller: _clubnameController,
                 decoration: InputDecoration(labelText: 'Club Name'),
@@ -134,29 +165,6 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
                 validator: (value) {
                   if (value != _passwordController.text.trim()) {
                     return 'Passwords do not match';
-                  }
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedDepartment,
-                hint: Text('Select Department'),
-                items: [
-                  DropdownMenuItem(value: 'CED', child: Text('CED')),
-                  DropdownMenuItem(value: 'CEAC', child: Text('CEAC')),
-                  DropdownMenuItem(value: 'CBA', child: Text('CBA')),
-                  DropdownMenuItem(value: 'CAS', child: Text('CAS')),
-                  DropdownMenuItem(
-                      value: 'Non Academic', child: Text('Non Acad')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedDepartment = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a department';
                   }
                   return null;
                 },

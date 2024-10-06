@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'creators folder/creator_home_page.dart';
+import 'creators folder/home_page.dart';
 import 'student folder/stud_home.dart'; // Import your HomePage for students
 import 'create_account_page.dart';
 
