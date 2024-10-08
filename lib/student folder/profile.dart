@@ -31,7 +31,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
   @override
   void initState() {
     super.initState();
-    loadProfileImage(widget.email, (url) {
+    loadProfileImage(widget.schoolId, (url) {
       setState(() {
         _profileImageURL = url;
       });
@@ -60,45 +60,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
             Center(
               child: GestureDetector(
                 onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) => Wrap(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.photo_library),
-                          title: const Text('Gallery'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            pickImage(ImageSource.gallery, (image) {
-                              setState(() {
-                                _profileImage = image;
-                              });
-                            }, (url) {
-                              setState(() {
-                                _profileImageURL = url;
-                              });
-                            }, widget.email);
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.camera_alt),
-                          title: const Text('Camera'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            pickImage(ImageSource.camera, (image) {
-                              setState(() {
-                                _profileImage = image;
-                              });
-                            }, (url) {
-                              setState(() {
-                                _profileImageURL = url;
-                              });
-                            }, widget.email);
-                          },
-                        ),
-                      ],
-                    ),
-                  );
+                  _showImageSourceSelection(context);
                 },
                 child: CircleAvatar(
                   radius: 50,
@@ -128,7 +90,6 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
               'Email: ${widget.email}',
               style: const TextStyle(fontSize: 16),
             ),
-            //supposed i want to add department and schoolId
             const SizedBox(height: 10),
             Text(
               'Department: ${widget.department}', // Display department
@@ -175,6 +136,48 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showImageSourceSelection(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Gallery'),
+            onTap: () {
+              Navigator.pop(context);
+              pickImage(ImageSource.gallery, (image) {
+                setState(() {
+                  _profileImage = image;
+                });
+              }, (url) {
+                setState(() {
+                  _profileImageURL = url;
+                });
+              }, widget.schoolId);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.camera_alt),
+            title: const Text('Camera'),
+            onTap: () {
+              Navigator.pop(context);
+              pickImage(ImageSource.camera, (image) {
+                setState(() {
+                  _profileImage = image;
+                });
+              }, (url) {
+                setState(() {
+                  _profileImageURL = url;
+                });
+              }, widget.schoolId);
+            },
+          ),
+        ],
       ),
     );
   }

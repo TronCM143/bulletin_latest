@@ -62,36 +62,37 @@ class StudentFunctions {
 }
 
 Future<void> pickImage(ImageSource source, Function(File) setProfileImage,
-    Function(String) setProfileImageURL, String email) async {
+    Function(String) setProfileImageURL, String schoolId) async {
   final picker = ImagePicker();
   final pickedFile = await picker.pickImage(source: source);
 
   if (pickedFile != null) {
     setProfileImage(File(pickedFile.path));
-    await uploadImageToFirebase(pickedFile.path, setProfileImageURL, email);
+    await uploadImageToFirebase(pickedFile.path, setProfileImageURL, schoolId);
   }
 }
 
-Future<void> uploadImageToFirebase(
-    String filePath, Function(String) setProfileImageURL, String email) async {
+Future<void> uploadImageToFirebase(String filePath,
+    Function(String) setProfileImageURL, String schoolId) async {
   try {
     String fileName =
-        'profile_images/${email}_${DateTime.now().millisecondsSinceEpoch}.png';
+        'profile_images/${schoolId}_${DateTime.now().millisecondsSinceEpoch}.png';
     final storageRef = FirebaseStorage.instance.ref().child(fileName);
     final uploadTask = storageRef.putFile(File(filePath));
     final snapshot = await uploadTask.whenComplete(() => null);
     final downloadURL = await snapshot.ref.getDownloadURL();
-    await saveImageURLToFirestore(downloadURL, email);
+    await saveImageURLToFirestore(downloadURL, schoolId);
     setProfileImageURL(downloadURL);
   } catch (e) {
     print('Error uploading image: $e');
   }
 }
 
-Future<void> saveImageURLToFirestore(String downloadURL, String email) async {
+Future<void> saveImageURLToFirestore(
+    String downloadURL, String schoolId) async {
   try {
     final studentDocRef =
-        FirebaseFirestore.instance.collection('students').doc(email);
+        FirebaseFirestore.instance.collection('users_students').doc(schoolId);
     await studentDocRef.set({
       'profileImageURL': downloadURL,
     }, SetOptions(merge: true));
@@ -101,11 +102,11 @@ Future<void> saveImageURLToFirestore(String downloadURL, String email) async {
 }
 
 Future<void> loadProfileImage(
-    String email, Function(String?) setProfileImageURL) async {
+    String schoolId, Function(String?) setProfileImageURL) async {
   try {
     final studentDoc = await FirebaseFirestore.instance
-        .collection('students')
-        .doc(email)
+        .collection('users_students')
+        .doc(schoolId)
         .get();
     if (studentDoc.exists &&
         studentDoc.data() != null &&
