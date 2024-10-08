@@ -1,5 +1,8 @@
+import 'package:bulletin/creators%20folder/creator_post_tab.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'add_post.dart';
 import 'functions.dart'; // Import the functions file
 
 class CreatorHomePage extends StatefulWidget {
@@ -17,6 +20,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   String department = 'Loading...';
   String email = 'Loading...';
   String? profileImageURL; // Variable to hold the profile image URL
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -65,6 +69,36 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         (url.startsWith('http://') || url.startsWith('https://'));
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index; // Update the selected index
+    });
+
+    switch (index) {
+      case 0:
+        // Handle home tab
+        break;
+      case 1:
+        // Handle search tab
+        break;
+      case 2:
+        // Open AddPostDialog (already handled directly in the IconButton)
+        break;
+      case 3:
+        // Navigate to the user's posts
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserPostsScreen(
+                clubEmail: email), // Create a new screen to display posts
+          ),
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
   // Define the method to get the stream for the creator's department
   Stream<QuerySnapshot> getDepartmentStream(String department) {
     return FirebaseFirestore.instance
@@ -79,6 +113,20 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
       appBar: AppBar(
         title: Text(department),
         actions: [
+          // Additional icon on the left
+          IconButton(
+            icon: const Icon(
+              Icons.notifications_rounded, // Replace with your desired icon
+              color: Colors.green,
+            ),
+            onPressed: () {
+              // Add your desired functionality here
+              // For example, navigate to settings screen or show a dialog
+              // Navigator.pushNamed(context, '/settings');
+            },
+            tooltip: 'Settings',
+          ),
+          // Profile icon with CircleAvatar
           IconButton(
             icon: CircleAvatar(
               radius: 20, // Adjust size as needed
@@ -108,6 +156,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           ),
         ],
       ),
+
       body: Column(
         children: [
           Expanded(
@@ -156,26 +205,45 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Display club name
                             Text(
-                              postData['title'] ?? 'N/A',
+                              postData['clubName'] ?? 'N/A', // Club name
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors
+                                    .blue, // Optional: color for club name
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Display title
+                            Text(
+                              postData['title'] ?? 'N/A', // Post title
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              postData['content'] ?? 'N/A',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 8),
+
+                            // Display formatted timestamp
                             Text(
                               postData['timestamp'] != null
-                                  ? (postData['timestamp'] as Timestamp)
-                                      .toDate()
-                                      .toString()
+                                  ? DateFormat('EEE. MMM d, yyyy: h:mm a')
+                                      .format(
+                                      (postData['timestamp'] as Timestamp)
+                                          .toDate(),
+                                    )
                                   : 'N/A',
                               style: const TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Display content
+                            Text(
+                              postData['content'] ?? 'N/A', // Post content
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
@@ -189,15 +257,73 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         ],
       ),
       // Floating Action Button for adding a post
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'add_post',
-        onPressed: () {
-          // Use the showAddPostDialog method from CreatorFunctions
-          CreatorFunctions.showAddPostDialog(context, widget.clubEmail);
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'Add Post',
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(
+          left: 30,
+          right: 30,
+          bottom: 5,
+        ), // Move it up and apply left/right margins
+        padding: const EdgeInsets.symmetric(
+            horizontal: 10, vertical: 5), // Padding for better spacing
+        decoration: BoxDecoration(
+          color: Colors.transparent, // Make the container transparent
+          // No background color for the container to allow full overlap
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // Home icon (unchanged)
+            IconButton(
+              icon: Icon(
+                Icons.home,
+                color: _selectedIndex == 0 ? Colors.green : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+                _onItemTapped(0);
+              },
+            ),
+
+            // Spacer for the FloatingActionButton
+            const SizedBox(
+                width: 40), // Adjust the space for the floating button
+
+            // User's Posts (right-side tab)
+            IconButton(
+              icon: Icon(
+                Icons.account_circle,
+                color: _selectedIndex == 3 ? Colors.green : Colors.grey,
+              ),
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 3;
+                });
+                _onItemTapped(3);
+              },
+            ),
+          ],
+        ),
       ),
+
+      // Add the floating action button
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Open AddPostDialog directly
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AddPostDialog(clubEmail: email); // Pass the club email
+            },
+          );
+        },
+        backgroundColor: Colors.lightGreen,
+        child: const Icon(Icons.add), // Icon for adding posts
+      ),
+
+      // Position the floating action button in the center of the bottomNavigationBar
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
