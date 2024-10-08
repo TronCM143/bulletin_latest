@@ -1,67 +1,60 @@
+import 'package:bulletin/student%20folder/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'functions.dart'; // Ensure this import is correct
+import 'package:intl/intl.dart';
 
 class StudentHomePage extends StatefulWidget {
-  final String schoolId; // School ID to identify the student
-  final String studentDepartment; // Added department parameter
+  final String schoolId; // Id of the student
 
-  const StudentHomePage({
-    super.key,
-    required this.schoolId,
-    required this.studentDepartment, // Use the passed department here
-  });
+  const StudentHomePage({super.key, required this.schoolId});
 
   @override
-  _StudentHomePageState createState() => _StudentHomePageState();
+  State<StudentHomePage> createState() => _StudentHomePageState();
 }
 
 class _StudentHomePageState extends State<StudentHomePage> {
-  String name = 'Loading...';
+  // State variables to store student's information
+  String firstName = 'Loading...';
+  String lastName = 'Loading...';
   String department = 'Loading...';
+  String schoolId = 'Loading...';
   String email = 'Loading...';
-  String? profileImageURL;
+  String? profileImageURL; // Variable to hold the profile image URL
 
   @override
   void initState() {
     super.initState();
-    _fetchStudentInfo();
+    // Fetch student information from Firestore
+    StudentFunctions.fetchStudentInfo(widget.schoolId,
+        (fName, lName, ema, dept, id) {
+      setState(() {
+        firstName = fName;
+        lastName = lName;
+        email = ema;
+        department = dept;
+        schoolId = id;
+      });
+      _loadProfileImage();
+    }, context);
   }
 
-  Future<void> _fetchStudentInfo() async {
-    try {
-      final studentDoc = await FirebaseFirestore.instance
-          .collection('users_students')
-          .doc(widget.schoolId)
-          .get();
-
-      if (studentDoc.exists) {
-        setState(() {
-          name = studentDoc.data()?['name'] ?? 'N/A';
-          department = studentDoc.data()?['department'] ??
-              widget.studentDepartment; // Directly use the passed department
-          email = studentDoc.data()?['email'] ?? 'N/A';
-        });
-        _loadProfileImage();
-      }
-    } catch (e) {
-      print('Error loading student info: $e');
-    }
-  }
-
+  // Method to load the profile image URL from Firestore
   Future<void> _loadProfileImage() async {
     try {
       final studentDoc = await FirebaseFirestore.instance
-          .collection('users_students')
-          .doc(widget.schoolId)
+          .collection('users_students') // Ensure correct collection name
+          .doc(schoolId) // Use the student's ID as the document ID
           .get();
 
       if (studentDoc.exists) {
-        String? imageUrl = studentDoc.data()?['profileImageURL'];
-        if (isValidImageUrl(imageUrl)) {
-          setState(() {
-            profileImageURL = imageUrl;
-          });
+        if (studentDoc.data() != null &&
+            studentDoc.data()!.containsKey('profileImageURL')) {
+          String? imageUrl = studentDoc.data()!['profileImageURL'];
+          if (isValidImageUrl(imageUrl)) {
+            setState(() {
+              profileImageURL = imageUrl;
+            });
+          }
         }
       }
     } catch (e) {
@@ -69,44 +62,37 @@ class _StudentHomePageState extends State<StudentHomePage> {
     }
   }
 
+  // Method to check if the image URL is valid
   bool isValidImageUrl(String? url) {
     return url != null &&
         (url.startsWith('http://') || url.startsWith('https://'));
-  }
-
-  Stream<QuerySnapshot> getDepartmentStream([String? department]) {
-    return FirebaseFirestore.instance
-        .collection(department!) // Use the department name directly
-        .where('status', isEqualTo: 'Accepted')
-        .snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(department),
+        title: const Text('Student Home Page'),
         actions: [
           IconButton(
             icon: CircleAvatar(
-              radius: 20,
-              backgroundImage:
-                  profileImageURL != null && profileImageURL!.isNotEmpty
-                      ? NetworkImage(profileImageURL!)
-                      : null,
+              radius: 20, // Adjust size as needed
+              backgroundImage: profileImageURL != null &&
+                      profileImageURL!.isNotEmpty
+                  ? NetworkImage(profileImageURL!) // Use the profile image URL
+                  : null, // No image will be displayed if URL is empty
               child: profileImageURL == null || profileImageURL!.isEmpty
                   ? const Icon(
                       Icons.person,
-                      size: 24,
-                      color: Colors.white,
+                      size: 24, // Adjust icon size if needed
+                      color: Colors
+                          .white, // Color of the icon when no image is available
                     )
-                  : null,
+                  : null, // No child if profile image exists
             ),
             onPressed: () {
-              if (email.isNotEmpty) {
-                StudentFunctions.showProfileDialog(
-                    context, name, department, email);
-              }
+              StudentFunctions.showProfileDialog(
+                  context, firstName, lastName, email, department, schoolId);
             },
             tooltip: 'Profile',
           ),
@@ -115,44 +101,29 @@ class _StudentHomePageState extends State<StudentHomePage> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: (department != 'Loading...' && department.isNotEmpty)
-                  ? getDepartmentStream(department) // Ensure valid department
-                  : null,
-              builder: (context, departmentSnapshot) {
-                if (departmentSnapshot.connectionState ==
-                    ConnectionState.waiting) {
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: fetchAcceptedPosts(department),
+              builder: (context,
+                  AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                List<DocumentSnapshot> allPosts = [];
-                if (departmentSnapshot.hasData) {
-                  allPosts = departmentSnapshot.data!.docs; // Directly use docs
-                }
-                if (departmentSnapshot.hasError) {
-                  return Center(
-                      child: Text('Error: ${departmentSnapshot.error}'));
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
-                // Sort posts by timestamp (newest first)
-                allPosts.sort((a, b) {
-                  final aTimestamp = a['timestamp'] as Timestamp?;
-                  final bTimestamp = b['timestamp'] as Timestamp?;
-                  return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ??
-                      0;
-                });
+                final acceptedPosts = snapshot.data ?? [];
 
-                if (allPosts.isEmpty) {
+                if (acceptedPosts.isEmpty) {
                   return const Center(
                       child: Text('No accepted posts available.'));
                 }
 
-                // Display the combined posts
                 return ListView.builder(
-                  itemCount: allPosts.length,
+                  itemCount: acceptedPosts.length,
                   itemBuilder: (context, index) {
-                    final postData =
-                        allPosts[index].data() as Map<String, dynamic>;
+                    final postData = acceptedPosts[index];
 
                     return Card(
                       margin: const EdgeInsets.symmetric(
@@ -162,6 +133,26 @@ class _StudentHomePageState extends State<StudentHomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Displaying Club Name at the top
+                            Text(
+                              postData['clubName'] ?? 'Unknown Club',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(
+                                height: 4), // Space between club and department
+                            // Displaying Department Name below the Club Name
+                            Text(
+                              postData['department'] ?? 'Unknown Department',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Displaying Post Title
                             Text(
                               postData['title'] ?? 'N/A',
                               style: const TextStyle(
@@ -170,17 +161,19 @@ class _StudentHomePageState extends State<StudentHomePage> {
                               ),
                             ),
                             const SizedBox(height: 8),
+                            // Displaying Post Content
                             Text(
                               postData['content'] ?? 'N/A',
                               style: const TextStyle(fontSize: 16),
                             ),
                             const SizedBox(height: 8),
+                            // Displaying Timestamp
                             Text(
                               postData['timestamp'] != null
-                                  ? (postData['timestamp'] as Timestamp)
-                                      .toDate()
-                                      .toString()
-                                  : 'N/A',
+                                  ? DateFormat('MMMM-dd-yyyy hh:mm a').format(
+                                      (postData['timestamp'] as Timestamp)
+                                          .toDate())
+                                  : 'N/A', // Use N/A if timestamp is null
                               style: const TextStyle(color: Colors.grey),
                             ),
                           ],
@@ -195,5 +188,67 @@ class _StudentHomePageState extends State<StudentHomePage> {
         ],
       ),
     );
+  }
+
+  // Function to fetch accepted posts from the student's department and Non-Academic department
+  Future<List<Map<String, dynamic>>> fetchAcceptedPosts(
+      String department) async {
+    List<Map<String, dynamic>> acceptedPosts = [];
+
+    // Fetch accepted posts from the student's department
+    var departmentPostsSnapshot = await FirebaseFirestore.instance
+        .collection('creator')
+        .where('department', isEqualTo: department)
+        .get();
+
+    for (var creator in departmentPostsSnapshot.docs) {
+      var postsSnapshot = await FirebaseFirestore.instance
+          .collection('creator')
+          .doc(creator.id)
+          .collection('posts')
+          .where('status', isEqualTo: 'Accepted')
+          .get();
+
+      for (var post in postsSnapshot.docs) {
+        var postData = post.data();
+        postData['clubName'] =
+            creator.id; // Assuming the creator ID is the club name
+        postData['department'] = department; // Add department info to postData
+        acceptedPosts.add(postData);
+      }
+    }
+
+    // Fetch accepted posts from the Non-Academic department
+    var nonAcadPostsSnapshot = await FirebaseFirestore.instance
+        .collection('creator')
+        .where('department', isEqualTo: 'Non Academic')
+        .get();
+
+    for (var creator in nonAcadPostsSnapshot.docs) {
+      var postsSnapshot = await FirebaseFirestore.instance
+          .collection('creator')
+          .doc(creator.id)
+          .collection('posts')
+          .where('status', isEqualTo: 'Accepted')
+          .get();
+
+      for (var post in postsSnapshot.docs) {
+        var postData = post.data();
+        postData['clubName'] =
+            creator.id; // Assuming the creator ID is the club name
+        postData['department'] =
+            'Non Academic'; // Add department info to postData
+        acceptedPosts.add(postData);
+      }
+    }
+
+    // Sort posts by timestamp in descending order (latest first)
+    acceptedPosts.sort((a, b) {
+      Timestamp timestampA = a['timestamp'] ?? Timestamp(0, 0);
+      Timestamp timestampB = b['timestamp'] ?? Timestamp(0, 0);
+      return timestampB.compareTo(timestampA); // Sort descending
+    });
+
+    return acceptedPosts;
   }
 }

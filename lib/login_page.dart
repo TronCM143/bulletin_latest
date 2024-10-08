@@ -11,7 +11,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool _rememberMe = false;
-
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -32,23 +31,19 @@ class _LoginPageState extends State<LoginPage> {
         if (studentDoc.exists) {
           String storedPassword = studentDoc['password'];
           if (storedPassword == password) {
-            // Login successful for students collection
-            String studentDepartment =
-                studentDoc['department'] ?? 'Unknown'; // Retrieve department
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => StudentHomePage(
-                  studentDepartment: studentDepartment,
-                  schoolId: '',
-                ), // Pass the department
+                  schoolId: id,
+                ), // Pass the school ID
               ),
             );
             return; // Exit the function if student login is successful
           } else {
             // Incorrect password for students collection
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Incorrect password for student.')),
+              const SnackBar(content: Text('Incorrect password for student.')),
             );
             return; // Exit if password is incorrect
           }
@@ -63,7 +58,6 @@ class _LoginPageState extends State<LoginPage> {
         if (creatorDoc.exists) {
           String storedPassword = creatorDoc['password'];
           if (storedPassword == password) {
-            // Login successful for creator collection
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -76,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
           } else {
             // Incorrect password for creator collection
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Incorrect password for creator.')),
+              const SnackBar(content: Text('Incorrect password for creator.')),
             );
             return; // Exit if password is incorrect
           }
@@ -268,7 +262,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                               ),
-
                               SizedBox(height: 5),
                               // Social Media Login Row
                               Row(
