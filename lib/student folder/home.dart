@@ -133,23 +133,31 @@ class _StudentHomePageState extends State<StudentHomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Displaying Club Name at the top
-                            Text(
-                              postData['clubName'] ?? 'Unknown Club',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(
-                                height: 4), // Space between club and department
-                            // Displaying Department Name below the Club Name
-                            Text(
-                              postData['department'] ?? 'Unknown Department',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
+                            Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      postData['clubName'] ?? 'Unknown Club',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      postData['timestamp'] != null
+                                          ? DateFormat('hh:mm a MMM dd yyyy')
+                                              .format((postData['timestamp']
+                                                      as Timestamp)
+                                                  .toDate())
+                                          : 'N/A', // Use N/A if timestamp is null
+                                      style:
+                                          const TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 8),
                             // Displaying Post Title
@@ -165,16 +173,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
                             Text(
                               postData['content'] ?? 'N/A',
                               style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 8),
-                            // Displaying Timestamp
-                            Text(
-                              postData['timestamp'] != null
-                                  ? DateFormat('hh:mm a MMM dd yyyy').format(
-                                      (postData['timestamp'] as Timestamp)
-                                          .toDate())
-                                  : 'N/A', // Use N/A if timestamp is null
-                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
