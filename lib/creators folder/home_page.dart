@@ -1,4 +1,5 @@
 import 'package:bulletin/creators%20folder/creator_post_tab.dart';
+import 'package:bulletin/profile_avatar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -189,7 +190,10 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AddPostDialog(clubEmail: email); // Pass the club email
+              return AddPostDialog(
+                clubEmail: email,
+                clubName: clubName,
+              ); // Pass the club email
             },
           );
         },
@@ -251,18 +255,42 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Display club name
-                          Text(
-                            postData['clubName'] ?? 'N/A', // Club name
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color:
-                                  Colors.blue, // Optional: color for club name
-                            ),
+                          Row(
+                            children: [
+                              // Custom widget to fetch and display the profile image URL
+                              ProfileAvatar(
+                                creatorId: postData['creatorId'],
+                              ),
+                              const SizedBox(width: 8),
+                              // Club name and timestamp
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    postData['clubName'] ?? 'N/A', // Club name
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors
+                                          .blue, // Optional: color for club name
+                                    ),
+                                  ),
+                                  Text(
+                                    postData['timestamp'] != null
+                                        ? DateFormat(
+                                                'hh:mm a  EEE. MMM dd yyyy')
+                                            .format(
+                                            (postData['timestamp'] as Timestamp)
+                                                .toDate(),
+                                          )
+                                        : 'N/A',
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
-
                           // Display title
                           Text(
                             postData['title'] ?? 'N/A', // Post title
@@ -272,19 +300,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-
-                          // Display formatted timestamp
-                          Text(
-                            postData['timestamp'] != null
-                                ? DateFormat('EEE. MMM d, yyyy: h:mm a').format(
-                                    (postData['timestamp'] as Timestamp)
-                                        .toDate(),
-                                  )
-                                : 'N/A',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          const SizedBox(height: 8),
-
                           // Display content
                           Text(
                             postData['content'] ?? 'N/A', // Post content

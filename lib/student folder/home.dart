@@ -170,7 +170,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                             // Displaying Timestamp
                             Text(
                               postData['timestamp'] != null
-                                  ? DateFormat('MMMM-dd-yyyy hh:mm a').format(
+                                  ? DateFormat('hh:mm a MMM dd yyyy').format(
                                       (postData['timestamp'] as Timestamp)
                                           .toDate())
                                   : 'N/A', // Use N/A if timestamp is null

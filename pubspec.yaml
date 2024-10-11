@@ -1,11 +1,14 @@
 name: bulletin
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
+# version: 0.1.0
+
+# environment:
+#   sdk: ^3.6.0-255.0.dev
+version: 1.0.0+1
 
 environment:
-  sdk: ^3.6.0-255.0.dev
-
+  sdk: ^3.6.0-216.1.beta
 dependencies:
   flutter:
     sdk: flutter

@@ -33,10 +33,16 @@ class CreatorFunctions {
   }
 
   static void showAddPostDialog(BuildContext context, String clubEmail) {
-    showDialog(
-      context: context,
-      builder: (context) => AddPostDialog(clubEmail: clubEmail),
-    );
+    // Fetch clubName before showing the dialog
+    fetchCreatorInfo(clubEmail, (clubName, department, email) {
+      showDialog(
+        context: context,
+        builder: (context) => AddPostDialog(
+          clubEmail: clubEmail,
+          clubName: clubName, // Now passing the fetched clubName
+        ),
+      );
+    }, context);
   }
 
   static void showProfileDialog(
