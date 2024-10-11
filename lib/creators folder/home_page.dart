@@ -136,8 +136,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         index: _selectedIndex,
         children: [
           buildHomeTab(), // Home tab content
-          Container(), // Placeholder for search tab
-          Container(), // Placeholder for add post (handled by FAB)
           buildUserPostsTab(), // User's posts tab content
         ],
       ),
@@ -174,10 +172,10 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             IconButton(
               icon: Icon(
                 Icons.account_circle,
-                color: _selectedIndex == 3 ? Colors.green : Colors.grey,
+                color: _selectedIndex == 1 ? Colors.green : Colors.grey,
               ),
               onPressed: () {
-                _onItemTapped(3);
+                _onItemTapped(1);
               },
             ),
           ],
