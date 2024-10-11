@@ -73,30 +73,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     setState(() {
       _selectedIndex = index; // Update the selected index
     });
-
-    switch (index) {
-      case 0:
-        // Handle home tab
-        break;
-      case 1:
-        // Handle search tab
-        break;
-      case 2:
-        // Open AddPostDialog (already handled directly in the IconButton)
-        break;
-      case 3:
-        // Navigate to the user's posts
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => UserPostsScreen(
-                clubEmail: email), // Create a new screen to display posts
-          ),
-        );
-        break;
-      default:
-        break;
-    }
   }
 
   // Define the method to get the stream for the creator's department
@@ -156,104 +132,13 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           ),
         ],
       ),
-
-      body: Column(
+      body: IndexedStack(
+        index: _selectedIndex,
         children: [
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: department.isNotEmpty
-                  ? getDepartmentStream(department) // Call the method here
-                  : null, // No stream if department is not set
-              builder: (context, departmentSnapshot) {
-                if (departmentSnapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                // List to hold all posts from the department
-                List<DocumentSnapshot> allPosts = [];
-
-                if (departmentSnapshot.hasData) {
-                  allPosts = departmentSnapshot.data!.docs; // Directly use docs
-                }
-
-                // Sort posts by timestamp (newest first)
-                allPosts.sort((a, b) {
-                  final aTimestamp = a['timestamp'] as Timestamp?;
-                  final bTimestamp = b['timestamp'] as Timestamp?;
-                  return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ??
-                      0;
-                });
-
-                if (allPosts.isEmpty) {
-                  return const Center(
-                      child: Text('No accepted posts available.'));
-                }
-
-                // Display the combined posts
-                return ListView.builder(
-                  itemCount: allPosts.length,
-                  itemBuilder: (context, index) {
-                    final postData =
-                        allPosts[index].data() as Map<String, dynamic>;
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 15),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Display club name
-                            Text(
-                              postData['clubName'] ?? 'N/A', // Club name
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors
-                                    .blue, // Optional: color for club name
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Display title
-                            Text(
-                              postData['title'] ?? 'N/A', // Post title
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Display formatted timestamp
-                            Text(
-                              postData['timestamp'] != null
-                                  ? DateFormat('EEE. MMM d, yyyy: h:mm a')
-                                      .format(
-                                      (postData['timestamp'] as Timestamp)
-                                          .toDate(),
-                                    )
-                                  : 'N/A',
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                            const SizedBox(height: 8),
-
-                            // Display content
-                            Text(
-                              postData['content'] ?? 'N/A', // Post content
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
+          buildHomeTab(), // Home tab content
+          Container(), // Placeholder for search tab
+          Container(), // Placeholder for add post (handled by FAB)
+          buildUserPostsTab(), // User's posts tab content
         ],
       ),
       // Floating Action Button for adding a post
@@ -266,8 +151,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         padding: const EdgeInsets.symmetric(
             horizontal: 10, vertical: 5), // Padding for better spacing
         decoration: BoxDecoration(
-          color: Colors.transparent, // Make the container transparent
-          // No background color for the container to allow full overlap
+          color: Colors.transparent,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -279,13 +163,9 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                 color: _selectedIndex == 0 ? Colors.green : Colors.grey,
               ),
               onPressed: () {
-                setState(() {
-                  _selectedIndex = 0;
-                });
                 _onItemTapped(0);
               },
             ),
-
             // Spacer for the FloatingActionButton
             const SizedBox(
                 width: 40), // Adjust the space for the floating button
@@ -297,9 +177,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                 color: _selectedIndex == 3 ? Colors.green : Colors.grey,
               ),
               onPressed: () {
-                setState(() {
-                  _selectedIndex = 3;
-                });
                 _onItemTapped(3);
               },
             ),
@@ -325,5 +202,111 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
       // Position the floating action button in the center of the bottomNavigationBar
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
+  }
+
+  Widget buildHomeTab() {
+    return Column(
+      children: [
+        Expanded(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: department.isNotEmpty
+                ? getDepartmentStream(department) // Call the method here
+                : null, // No stream if department is not set
+            builder: (context, departmentSnapshot) {
+              if (departmentSnapshot.connectionState ==
+                  ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              // List to hold all posts from the department
+              List<DocumentSnapshot> allPosts = [];
+
+              if (departmentSnapshot.hasData) {
+                allPosts = departmentSnapshot.data!.docs; // Directly use docs
+              }
+
+              // Sort posts by timestamp (newest first)
+              allPosts.sort((a, b) {
+                final aTimestamp = a['timestamp'] as Timestamp?;
+                final bTimestamp = b['timestamp'] as Timestamp?;
+                return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ??
+                    0;
+              });
+
+              if (allPosts.isEmpty) {
+                return const Center(
+                    child: Text('No accepted posts available.'));
+              }
+
+              // Display the combined posts
+              return ListView.builder(
+                itemCount: allPosts.length,
+                itemBuilder: (context, index) {
+                  final postData =
+                      allPosts[index].data() as Map<String, dynamic>;
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Display club name
+                          Text(
+                            postData['clubName'] ?? 'N/A', // Club name
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Colors.blue, // Optional: color for club name
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Display title
+                          Text(
+                            postData['title'] ?? 'N/A', // Post title
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Display formatted timestamp
+                          Text(
+                            postData['timestamp'] != null
+                                ? DateFormat('EEE. MMM d, yyyy: h:mm a').format(
+                                    (postData['timestamp'] as Timestamp)
+                                        .toDate(),
+                                  )
+                                : 'N/A',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Display content
+                          Text(
+                            postData['content'] ?? 'N/A', // Post content
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildUserPostsTab() {
+    return UserPostsScreen(
+        clubEmail: email); // Create a new screen to display posts
   }
 }
