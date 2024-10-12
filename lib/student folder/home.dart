@@ -143,6 +143,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
                       itemBuilder: (context, index) {
                         final postData = acceptedPosts[index];
 
+<<<<<<< HEAD
                         return Card(
                           margin: const EdgeInsets.symmetric(
                               vertical: 10, horizontal: 15),
@@ -208,6 +209,60 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           ),
                         );
                       },
+=======
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 15),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      postData['clubName'] ?? 'Unknown Club',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      postData['timestamp'] != null
+                                          ? DateFormat('hh:mm a MMM dd yyyy')
+                                              .format((postData['timestamp']
+                                                      as Timestamp)
+                                                  .toDate())
+                                          : 'N/A', // Use N/A if timestamp is null
+                                      style:
+                                          const TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Displaying Post Title
+                            Text(
+                              postData['title'] ?? 'N/A',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Displaying Post Content
+                            Text(
+                              postData['content'] ?? 'N/A',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+>>>>>>> d59243c19b2a1976ea76feceef21a4610328c4d6
                     );
                   },
                 ),
