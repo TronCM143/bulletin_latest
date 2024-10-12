@@ -84,6 +84,11 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         .snapshots(); // Get real-time snapshots for accepted posts
   }
 
+  // Method to refresh the posts list
+  Future<void> _refreshPosts() async {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,114 +212,105 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   }
 
   Widget buildHomeTab() {
-    return Column(
-      children: [
-        Expanded(
-          child: StreamBuilder<QuerySnapshot>(
-            stream: department.isNotEmpty
-                ? getDepartmentStream(department) // Call the method here
-                : null, // No stream if department is not set
-            builder: (context, departmentSnapshot) {
-              if (departmentSnapshot.connectionState ==
-                  ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+    return RefreshIndicator(
+      onRefresh: _refreshPosts, // Call the refresh method
+      child: Column(
+        children: [
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: department.isNotEmpty
+                  ? getDepartmentStream(department)
+                  : null,
+              builder: (context, departmentSnapshot) {
+                if (departmentSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              // List to hold all posts from the department
-              List<DocumentSnapshot> allPosts = [];
+                List<DocumentSnapshot> allPosts = [];
 
-              if (departmentSnapshot.hasData) {
-                allPosts = departmentSnapshot.data!.docs; // Directly use docs
-              }
+                if (departmentSnapshot.hasData) {
+                  allPosts = departmentSnapshot.data!.docs;
+                }
 
-              // Sort posts by timestamp (newest first)
-              allPosts.sort((a, b) {
-                final aTimestamp = a['timestamp'] as Timestamp?;
-                final bTimestamp = b['timestamp'] as Timestamp?;
-                return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ??
-                    0;
-              });
+                allPosts.sort((a, b) {
+                  final aTimestamp = a['timestamp'] as Timestamp?;
+                  final bTimestamp = b['timestamp'] as Timestamp?;
+                  return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ??
+                      0;
+                });
 
-              if (allPosts.isEmpty) {
-                return const Center(
-                    child: Text('No accepted posts available.'));
-              }
+                if (allPosts.isEmpty) {
+                  return const Center(
+                      child: Text('No accepted posts available.'));
+                }
 
-              // Display the combined posts
-              return ListView.builder(
-                itemCount: allPosts.length,
-                itemBuilder: (context, index) {
-                  final postData =
-                      allPosts[index].data() as Map<String, dynamic>;
+                return ListView.builder(
+                  itemCount: allPosts.length,
+                  itemBuilder: (context, index) {
+                    final postData =
+                        allPosts[index].data() as Map<String, dynamic>;
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 15),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              // Custom widget to fetch and display the profile image URL
-                              ProfileAvatar(
-                                creatorId: postData['creatorId'],
-                              ),
-                              const SizedBox(width: 8),
-                              // Club name and timestamp
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    postData['clubName'] ?? 'N/A', // Club name
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors
-                                          .blue, // Optional: color for club name
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 15),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                ProfileAvatar(creatorId: postData['creatorId']),
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      postData['clubName'] ?? 'N/A',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    postData['timestamp'] != null
-                                        ? DateFormat(
-                                                'hh:mm a  EEE. MMM dd yyyy')
-                                            .format(
-                                            (postData['timestamp'] as Timestamp)
-                                                .toDate(),
-                                          )
-                                        : 'N/A',
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // Display title
-                          Text(
-                            postData['title'] ?? 'N/A', // Post title
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                                    Text(
+                                      postData['timestamp'] != null
+                                          ? DateFormat(
+                                                  'hh:mm a  EEE. MMM dd yyyy')
+                                              .format((postData['timestamp']
+                                                      as Timestamp)
+                                                  .toDate())
+                                          : 'N/A',
+                                      style:
+                                          const TextStyle(color: Colors.grey),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Display content
-                          Text(
-                            postData['content'] ?? 'N/A', // Post content
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              postData['title'] ?? 'N/A',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              postData['content'] ?? 'N/A',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              );
-            },
+                    );
+                  },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

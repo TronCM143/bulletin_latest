@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../profile_avatar.dart';
+
 class StudentHomePage extends StatefulWidget {
   final String schoolId; // Id of the student
 
@@ -21,6 +23,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
   String email = 'Loading...';
   String? profileImageURL; // Variable to hold the profile image URL
 
+  late Future<List<Map<String, dynamic>>>
+      _acceptedPostsFuture; // Future for accepted posts
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +40,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
         schoolId = id;
       });
       _loadProfileImage();
+      _acceptedPostsFuture =
+          fetchAcceptedPosts(department); // Initial data load
     }, context);
   }
 
@@ -68,126 +75,146 @@ class _StudentHomePageState extends State<StudentHomePage> {
         (url.startsWith('http://') || url.startsWith('https://'));
   }
 
+  // Refresh posts data on pull-to-refresh
+  Future<void> _refreshPosts() async {
+    setState(() {
+      // Refetch accepted posts on refresh
+      _acceptedPostsFuture = fetchAcceptedPosts(department);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Student Home Page'),
-        actions: [
-          IconButton(
-            icon: CircleAvatar(
-              radius: 20, // Adjust size as needed
-              backgroundImage: profileImageURL != null &&
-                      profileImageURL!.isNotEmpty
-                  ? NetworkImage(profileImageURL!) // Use the profile image URL
-                  : null, // No image will be displayed if URL is empty
-              child: profileImageURL == null || profileImageURL!.isEmpty
-                  ? const Icon(
-                      Icons.person,
-                      size: 24, // Adjust icon size if needed
-                      color: Colors
-                          .white, // Color of the icon when no image is available
-                    )
-                  : null, // No child if profile image exists
+        appBar: AppBar(
+          title: const Text('Student Home Page'),
+          actions: [
+            IconButton(
+              icon: CircleAvatar(
+                radius: 20, // Adjust size as needed
+                backgroundImage:
+                    profileImageURL != null && profileImageURL!.isNotEmpty
+                        ? NetworkImage(
+                            profileImageURL!) // Use the profile image URL
+                        : null, // No image will be displayed if URL is empty
+                child: profileImageURL == null || profileImageURL!.isEmpty
+                    ? const Icon(
+                        Icons.person,
+                        size: 24, // Adjust icon size if needed
+                        color: Colors
+                            .white, // Color of the icon when no image is available
+                      )
+                    : null, // No child if profile image exists
+              ),
+              onPressed: () {
+                StudentFunctions.showProfileDialog(
+                    context, firstName, lastName, email, department, schoolId);
+              },
+              tooltip: 'Profile',
             ),
-            onPressed: () {
-              StudentFunctions.showProfileDialog(
-                  context, firstName, lastName, email, department, schoolId);
-            },
-            tooltip: 'Profile',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: fetchAcceptedPosts(department),
-              builder: (context,
-                  AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          ],
+        ),
+        body: RefreshIndicator(
+          onRefresh: _refreshPosts, // Pull-to-refresh triggers this method
+          child: Column(
+            children: [
+              Expanded(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _acceptedPostsFuture, // Use the future variable
+                  builder: (context,
+                      AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
 
-                final acceptedPosts = snapshot.data ?? [];
+                    final acceptedPosts = snapshot.data ?? [];
 
-                if (acceptedPosts.isEmpty) {
-                  return const Center(
-                      child: Text('No accepted posts available.'));
-                }
+                    if (acceptedPosts.isEmpty) {
+                      return const Center(
+                          child: Text('No accepted posts available.'));
+                    }
 
-                return ListView.builder(
-                  itemCount: acceptedPosts.length,
-                  itemBuilder: (context, index) {
-                    final postData = acceptedPosts[index];
+                    return ListView.builder(
+                      itemCount: acceptedPosts.length,
+                      itemBuilder: (context, index) {
+                        final postData = acceptedPosts[index];
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 15),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Displaying Club Name at the top
-                            Text(
-                              postData['clubName'] ?? 'Unknown Club',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 15),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    // Profile avatar for the creator
+                                    ProfileAvatar(
+                                        creatorId: postData['creatorId']),
+                                    const SizedBox(width: 8),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Club name
+                                        Text(
+                                          postData['clubName'] ??
+                                              'Unknown Club',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors
+                                                .blue, // Optional club name color
+                                          ),
+                                        ),
+                                        // Timestamp
+                                        Text(
+                                          postData['timestamp'] != null
+                                              ? DateFormat(
+                                                      'hh:mm a EEE. MMM dd yyyy')
+                                                  .format((postData['timestamp']
+                                                          as Timestamp)
+                                                      .toDate())
+                                              : 'N/A',
+                                          style: const TextStyle(
+                                              color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                // Post title
+                                Text(
+                                  postData['title'] ?? 'N/A',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Post content
+                                Text(
+                                  postData['content'] ?? 'N/A',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
                             ),
-                            const SizedBox(
-                                height: 4), // Space between club and department
-                            // Displaying Department Name below the Club Name
-                            Text(
-                              postData['department'] ?? 'Unknown Department',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Displaying Post Title
-                            Text(
-                              postData['title'] ?? 'N/A',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Displaying Post Content
-                            Text(
-                              postData['content'] ?? 'N/A',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 8),
-                            // Displaying Timestamp
-                            Text(
-                              postData['timestamp'] != null
-                                  ? DateFormat('hh:mm a MMM dd yyyy').format(
-                                      (postData['timestamp'] as Timestamp)
-                                          .toDate())
-                                  : 'N/A', // Use N/A if timestamp is null
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 
   // Function to fetch accepted posts from the student's department and Non-Academic department
@@ -211,8 +238,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
       for (var post in postsSnapshot.docs) {
         var postData = post.data();
-        postData['clubName'] =
-            creator.id; // Assuming the creator ID is the club name
+        postData['creatorId'] = creator.id; // Save creator ID for avatar usage
+        postData['clubName'] = creator['clubName'] ??
+            'Unknown Club'; // Assuming there is a 'clubName' field in the creator document
         postData['department'] = department; // Add department info to postData
         acceptedPosts.add(postData);
       }
@@ -234,8 +262,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
       for (var post in postsSnapshot.docs) {
         var postData = post.data();
-        postData['clubName'] =
-            creator.id; // Assuming the creator ID is the club name
+        postData['creatorId'] = creator.id; // Save creator ID for avatar usage
+        postData['clubName'] = creator['clubName'] ??
+            'Unknown Club'; // Assuming there is a 'clubName' field in the creator document
         postData['department'] =
             'Non Academic'; // Add department info to postData
         acceptedPosts.add(postData);
