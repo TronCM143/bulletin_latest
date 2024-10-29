@@ -10,8 +10,10 @@ class CreatorFunctions {
   static void fetchCreatorInfo(String clubEmail,
       Function(String, String, String) onUpdate, BuildContext context) {
     FirebaseFirestore.instance
-        .collection('creator')
-        .doc(clubEmail)
+        .collection('users')
+        .doc('creators')
+        .collection(clubEmail) // Use clubEmail as the collection name
+        .doc('account_details')
         .snapshots()
         .listen((creatorSnapshot) {
       if (creatorSnapshot.exists && creatorSnapshot.data() != null) {
@@ -104,8 +106,11 @@ Future<void> uploadImageToFirebase(
 Future<void> saveImageURLToFirestore(String downloadURL, String email) async {
   try {
     // Reference to the 'creators' collection in Firestore
-    final creatorDocRef =
-        FirebaseFirestore.instance.collection('creator').doc(email);
+    final creatorDocRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc('creators')
+        .collection(email) // Use clubEmail as the collection name
+        .doc('account_details');
 
     // Update the document with the image URL
     await creatorDocRef.set({
@@ -121,8 +126,12 @@ Future<void> loadProfileImage(
     String email, Function(String?) setProfileImageURL) async {
   try {
     // Get the document from Firestore
-    final creatorDoc =
-        await FirebaseFirestore.instance.collection('creator').doc(email).get();
+    final creatorDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc('creators')
+        .collection(email) // Use clubEmail as the collection name
+        .doc('account_details')
+        .get();
 
     if (creatorDoc.exists) {
       // Check if 'profileImageURL' field exists

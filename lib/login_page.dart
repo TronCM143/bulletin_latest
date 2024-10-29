@@ -24,8 +24,10 @@ class _LoginPageState extends State<LoginPage> {
 
         // First, check in the users_students collection
         DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-            .collection('users_students')
-            .doc(id) // Check by student ID
+            .collection('users')
+            .doc('students')
+            .collection(id)
+            .doc('account_details') // Check by student ID
             .get();
 
         if (studentDoc.exists) {
@@ -43,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
           } else {
             // Incorrect password for students collection
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Incorrect password for student.')),
+              const SnackBar(content: Text('Incorrect password.')),
             );
             return; // Exit if password is incorrect
           }
@@ -51,8 +53,10 @@ class _LoginPageState extends State<LoginPage> {
 
         // If not found in users_students, check in creator collection
         DocumentSnapshot creatorDoc = await FirebaseFirestore.instance
-            .collection('creator')
-            .doc(id) // Check by club email
+            .collection('users')
+            .doc('creators')
+            .collection(id) // Use clubEmail as the collection name
+            .doc('account_details') // Check by club email
             .get();
 
         if (creatorDoc.exists) {
@@ -70,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
           } else {
             // Incorrect password for creator collection
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Incorrect password for creator.')),
+              const SnackBar(content: Text('Incorrect password.')),
             );
             return; // Exit if password is incorrect
           }
@@ -78,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
 
         // If neither student ID nor club email is found
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ID not found in both collections.')),
+          SnackBar(content: Text('ID not found.')),
         );
       } catch (e) {
         // Handle any errors that occur during login

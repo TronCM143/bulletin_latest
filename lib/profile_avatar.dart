@@ -21,10 +21,15 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
 
   Future<void> _fetchProfileImageUrl() async {
     try {
-      // Fetch the document from the 'creator' collection using the creator ID
+      // // .collection('users')
+      //         .doc('creators')
+      //         .collection(email)
+      //         .doc('account_details');     pending
       final creatorDoc = await FirebaseFirestore.instance
-          .collection('creator')
-          .doc(widget.creatorId)
+          .collection('users')
+          .doc('creators')
+          .collection(widget.creatorId)
+          .doc('account_details')
           .get();
 
       if (creatorDoc.exists) {

@@ -1,5 +1,4 @@
 import 'package:bulletin/creators%20folder/creator_post_tab.dart';
-import 'package:bulletin/profile_avatar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -42,8 +41,10 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     try {
       // Get the document from Firestore
       final creatorDoc = await FirebaseFirestore.instance
-          .collection('creator') // Ensure correct collection name
-          .doc(email) // Use the creator's email as the document ID
+          .collection('users')
+          .doc('creators')
+          .collection(email) // Use clubEmail as the collection name
+          .doc('account_details') // Use the creator's email as the document ID
           .get();
 
       if (creatorDoc.exists) {
@@ -261,7 +262,9 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                           children: [
                             Row(
                               children: [
-                                ProfileAvatar(creatorId: postData['creatorId']),
+                                //dapat may creatorId ang post pag accept ka admin
+                                //,// and email maging Id
+                                //ProfileAvatar(creatorId: postData['creatorId']),
                                 const SizedBox(width: 8),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,

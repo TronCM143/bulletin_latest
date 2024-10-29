@@ -29,8 +29,10 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
       try {
         // Save user data to Firestore
         await FirebaseFirestore.instance
-            .collection('users_students')
-            .doc(schoolId)
+            .collection('users')
+            .doc('students')
+            .collection(schoolId) // Use clubEmail as the collection name
+            .doc('account_details') // Document for account details
             .set({
           'schoolId': schoolId,
           'firstName': firstName,
@@ -148,10 +150,20 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
                 value: _selectedDepartment,
                 hint: Text('Select Department'),
                 items: [
-                  DropdownMenuItem(value: 'CED', child: Text('CED')),
-                  DropdownMenuItem(value: 'CEAC', child: Text('CEAC')),
-                  DropdownMenuItem(value: 'CBA', child: Text('CBA')),
-                  DropdownMenuItem(value: 'CAS', child: Text('CAS')),
+                  DropdownMenuItem(
+                      value: 'CED', child: Text('College of Education')),
+                  DropdownMenuItem(
+                      value: 'CEAC',
+                      child: Text(
+                          'College of Engineering Architechture and Com...')),
+                  DropdownMenuItem(
+                      value: 'CBA',
+                      child: Text('College of Business Administration')),
+                  DropdownMenuItem(
+                      value: 'CAS',
+                      child: Text('College of Arts and Sciences')),
+                  DropdownMenuItem(
+                      value: 'Non Academic', child: Text('Non Academic')),
                 ],
                 onChanged: (value) {
                   setState(() {

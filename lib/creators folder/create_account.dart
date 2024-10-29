@@ -23,10 +23,12 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
       final password = _passwordController.text.trim();
 
       try {
-        // Check if the email already exists in the 'creator' collection
+        // Check if the email already exists in the 'creator_users' collection
         final doc = await FirebaseFirestore.instance
-            .collection('creator')
-            .doc(clubEmail)
+            .collection('users')
+            .doc('creators')
+            .collection(clubEmail) // Use clubEmail as the collection name
+            .doc('account_details') // Document for account details
             .get();
 
         if (doc.exists) {
@@ -34,17 +36,19 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Email already exists. Please use a different email.',
+                'Email already exists.',
                 style: TextStyle(color: Colors.red),
               ),
               backgroundColor: Colors.white,
             ),
           );
         } else {
-          // Use clubE mail as the UID in the 'creator' collection and add a timestamp
+          // Create a document under the specified collection
           await FirebaseFirestore.instance
-              .collection('creator')
-              .doc(clubEmail)
+              .collection('users')
+              .doc('creators')
+              .collection(clubEmail) // Use clubEmail as the collection name
+              .doc('account_details') // Document for account details
               .set({
             'clubName': clubName,
             'email': clubEmail,

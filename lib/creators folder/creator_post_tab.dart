@@ -15,8 +15,10 @@ class UserPostsScreen extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('creator')
-            .doc(clubEmail)
+            .collection('users')
+            .doc('creators')
+            .collection(clubEmail) // Use clubEmail as the collection name
+            .doc('posts') // Document based on the creator's email
             .collection('posts')
             .snapshots(), // Fetch posts of the specific user
         builder: (context, snapshot) {
@@ -64,6 +66,26 @@ class UserPostsScreen extends StatelessWidget {
                             : 'N/A',
                         style: const TextStyle(color: Colors.grey),
                       ),
+                      const SizedBox(height: 8),
+                      // Display images if available
+                      if (post['imageUrls'] != null &&
+                          (post['imageUrls'] as List).isNotEmpty)
+                        SizedBox(
+                          height: 100, // Adjust height as needed
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: (post['imageUrls'] as List).length,
+                            itemBuilder: (context, imageIndex) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Image.network(
+                                  (post['imageUrls'] as List)[imageIndex],
+                                  fit: BoxFit.cover,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
