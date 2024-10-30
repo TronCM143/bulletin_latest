@@ -15,12 +15,9 @@ class UserPostsScreen extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc('creators')
-            .collection(clubEmail) // Use clubEmail as the collection name
-            .doc('posts') // Document based on the creator's email
-            .collection('posts')
-            .snapshots(), // Fetch posts of the specific user
+            .collection('Posts')
+            .where('club_Id', isEqualTo: clubEmail)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -60,7 +57,7 @@ class UserPostsScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         post['timestamp'] != null
-                            ? DateFormat('EEE. MMM d, yyyy: h:mm a').format(
+                            ? DateFormat('MMM d, yyyy: h:mm a').format(
                                 (post['timestamp'] as Timestamp).toDate(),
                               )
                             : 'N/A',

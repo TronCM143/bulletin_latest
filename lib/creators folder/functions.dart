@@ -41,7 +41,8 @@ class CreatorFunctions {
         context: context,
         builder: (context) => AddPostDialog(
           clubEmail: clubEmail,
-          clubName: clubName, // Now passing the fetched clubName
+          clubName: clubName,
+          clubDepartment: department,
         ),
       );
     }, context);

@@ -6,12 +6,14 @@ import 'dart:io'; // Import for File
 
 class AddPostDialog extends StatefulWidget {
   final String clubEmail; // Club email to identify the creator
-  final String clubName; // Club name to be passed to Firebase
+  final String clubName;
+  final String clubDepartment; // Club name to be passed to Firebase
 
   const AddPostDialog({
     super.key,
     required this.clubEmail,
     required this.clubName,
+    required this.clubDepartment,
   });
 
   @override
@@ -69,23 +71,19 @@ class _AddPostDialogState extends State<AddPostDialog> {
         _isSaving = true; // Show loading state
       });
 
-      String postId = DateTime.now().millisecondsSinceEpoch.toString();
       Timestamp timestamp = Timestamp.now();
 
       try {
         List<String> imageUrls =
             await _uploadImages(); // Upload images and get URLs
 
-        CollectionReference postsCollection = FirebaseFirestore.instance
-            .collection('users')
-            .doc('creators')
-            .collection(widget.clubEmail)
-            .doc('posts')
-            .collection('posts');
+        CollectionReference postsCollection =
+            FirebaseFirestore.instance.collection('Posts');
 
         // Save the post to Firestore under the creator's document
-        await postsCollection.doc(postId).set({
+        await postsCollection.doc(title).set({
           'club_Id': widget.clubEmail,
+          'department': widget.clubDepartment,
           'title': title,
           'content': content,
           'timestamp': timestamp,

@@ -21,10 +21,6 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
 
   Future<void> _fetchProfileImageUrl() async {
     try {
-      // // .collection('users')
-      //         .doc('creators')
-      //         .collection(email)
-      //         .doc('account_details');     pending
       final creatorDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc('creators')

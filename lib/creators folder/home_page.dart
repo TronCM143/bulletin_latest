@@ -1,4 +1,5 @@
 import 'package:bulletin/creators%20folder/creator_post_tab.dart';
+import 'package:bulletin/profile_avatar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -80,7 +81,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   // Define the method to get the stream for the creator's department
   Stream<QuerySnapshot> getDepartmentStream(String department) {
     return FirebaseFirestore.instance
-        .collection(department)
+        .collection('Posts')
         .where('status', isEqualTo: 'Accepted')
         .snapshots(); // Get real-time snapshots for accepted posts
   }
@@ -197,9 +198,9 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             context: context,
             builder: (BuildContext context) {
               return AddPostDialog(
-                clubEmail: email,
-                clubName: clubName,
-              ); // Pass the club email
+                  clubEmail: email,
+                  clubName: clubName,
+                  clubDepartment: department); // Pass the club email
             },
           );
         },
@@ -262,9 +263,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                           children: [
                             Row(
                               children: [
-                                //dapat may creatorId ang post pag accept ka admin
-                                //,// and email maging Id
-                                //ProfileAvatar(creatorId: postData['creatorId']),
+                                ProfileAvatar(creatorId: postData['club_Id']),
                                 const SizedBox(width: 8),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,6 +302,28 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                               postData['content'] ?? 'N/A',
                               style: const TextStyle(fontSize: 16),
                             ),
+                            const SizedBox(height: 8),
+                            if (postData['imageUrls'] != null &&
+                                (postData['imageUrls'] as List).isNotEmpty)
+                              SizedBox(
+                                height: 100, // Adjust height as needed
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount:
+                                      (postData['imageUrls'] as List).length,
+                                  itemBuilder: (context, imageIndex) {
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Image.network(
+                                        (postData['imageUrls']
+                                            as List)[imageIndex],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                           ],
                         ),
                       ),

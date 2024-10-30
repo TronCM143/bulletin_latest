@@ -23,8 +23,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
   String email = 'Loading...';
   String? profileImageURL; // Variable to hold the profile image URL
 
-  late Future<List<Map<String, dynamic>>>
-      _acceptedPostsFuture; // Future for accepted posts
+  late Future<List<Map<String, dynamic>>> _acceptedPostsFuture =
+      Future.value([]); // Future for accepted posts
 
   @override
   void initState() {
@@ -49,8 +49,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Future<void> _loadProfileImage() async {
     try {
       final studentDoc = await FirebaseFirestore.instance
-          .collection('users_students') // Ensure correct collection name
-          .doc(schoolId) // Use the student's ID as the document ID
+          .collection('users')
+          .doc('students') // Ensure correct collection name
+          .collection(schoolId)
+          .doc('account_details') // Use the student's ID as the document ID
           .get();
 
       if (studentDoc.exists) {
@@ -153,9 +155,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
                               children: [
                                 Row(
                                   children: [
-                                    // Profile avatar for the creator
                                     ProfileAvatar(
-                                        creatorId: postData['creatorId']),
+                                        creatorId: postData['club_Id']),
                                     const SizedBox(width: 8),
                                     Column(
                                       crossAxisAlignment:
@@ -203,6 +204,28 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                   postData['content'] ?? 'N/A',
                                   style: const TextStyle(fontSize: 16),
                                 ),
+                                const SizedBox(height: 8),
+                                if (postData['imageUrls'] != null &&
+                                    (postData['imageUrls'] as List).isNotEmpty)
+                                  SizedBox(
+                                    height: 100, // Adjust height as needed
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: (postData['imageUrls'] as List)
+                                          .length,
+                                      itemBuilder: (context, imageIndex) {
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8.0),
+                                          child: Image.network(
+                                            (postData['imageUrls']
+                                                as List)[imageIndex],
+                                            fit: BoxFit.cover,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -222,17 +245,15 @@ class _StudentHomePageState extends State<StudentHomePage> {
       String department) async {
     List<Map<String, dynamic>> acceptedPosts = [];
 
-    // Fetch accepted posts from the student's department
+    // TARUNGON PA ANG FETCHING SANG POSTS SA TANAN NGA SIDE
     var departmentPostsSnapshot = await FirebaseFirestore.instance
-        .collection('creator')
+        .collection('Posts')
         .where('department', isEqualTo: department)
         .get();
 
     for (var creator in departmentPostsSnapshot.docs) {
       var postsSnapshot = await FirebaseFirestore.instance
-          .collection('creator')
-          .doc(creator.id)
-          .collection('posts')
+          .collection('Posts')
           .where('status', isEqualTo: 'Accepted')
           .get();
 
@@ -248,15 +269,13 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
     // Fetch accepted posts from the Non-Academic department
     var nonAcadPostsSnapshot = await FirebaseFirestore.instance
-        .collection('creator')
+        .collection('Posts')
         .where('department', isEqualTo: 'Non Academic')
         .get();
 
     for (var creator in nonAcadPostsSnapshot.docs) {
       var postsSnapshot = await FirebaseFirestore.instance
-          .collection('creator')
-          .doc(creator.id)
-          .collection('posts')
+          .collection('Posts')
           .where('status', isEqualTo: 'Accepted')
           .get();
 
