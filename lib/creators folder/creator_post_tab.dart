@@ -29,6 +29,13 @@ class UserPostsScreen extends StatelessWidget {
 
           final posts = snapshot.data!.docs;
 
+          // Sort the posts by timestamp in descending order (latest first)
+          posts.sort((a, b) {
+            final aTimestamp = a['timestamp'] as Timestamp?;
+            final bTimestamp = b['timestamp'] as Timestamp?;
+            return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ?? 0;
+          });
+
           return ListView.builder(
             itemCount: posts.length,
             itemBuilder: (context, index) {
