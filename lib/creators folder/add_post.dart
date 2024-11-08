@@ -87,7 +87,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
           'title': title,
           'content': content,
           'timestamp': timestamp,
-          'status': 'Pending', // Initially set status to 'Pending'
+          'status': 'pending', // Initially set status to 'Pending'
           'clubName': widget.clubName, // Pass clubName to Firestore
           'imageUrls': imageUrls, // Attach the list of image URLs
         });
