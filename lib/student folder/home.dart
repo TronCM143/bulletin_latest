@@ -241,61 +241,49 @@ class _StudentHomePageState extends State<StudentHomePage> {
   }
 
   // Function to fetch accepted posts from the student's department and Non-Academic department
+  // Function to fetch accepted posts for the student's department and Non-Academic department
   Future<List<Map<String, dynamic>>> fetchAcceptedPosts(
       String department) async {
     List<Map<String, dynamic>> acceptedPosts = [];
 
-    // TARUNGON PA ANG FETCHING SANG POSTS SA TANAN NGA SIDE
-    var departmentPostsSnapshot = await FirebaseFirestore.instance
-        .collection('Posts')
-        .where('department', isEqualTo: department)
-        .get();
-
-    for (var creator in departmentPostsSnapshot.docs) {
-      var postsSnapshot = await FirebaseFirestore.instance
+    try {
+      // Fetch posts for the student's department
+      var departmentPostsSnapshot = await FirebaseFirestore.instance
           .collection('Posts')
-          .where('status', isEqualTo: 'Accepted')
+          .where('department', isEqualTo: department)
+          .where('status', isEqualTo: 'accepted') // Filter by accepted posts
           .get();
 
-      for (var post in postsSnapshot.docs) {
+      // Process each post in the student's department
+      for (var post in departmentPostsSnapshot.docs) {
         var postData = post.data();
-        postData['creatorId'] = creator.id; // Save creator ID for avatar usage
-        postData['clubName'] = creator['clubName'] ??
-            'Unknown Club'; // Assuming there is a 'clubName' field in the creator document
-        postData['department'] = department; // Add department info to postData
+        postData['creatorId'] = post.id; // Add creator ID
         acceptedPosts.add(postData);
       }
-    }
 
-    // Fetch accepted posts from the Non-Academic department
-    var nonAcadPostsSnapshot = await FirebaseFirestore.instance
-        .collection('Posts')
-        .where('department', isEqualTo: 'Non Academic')
-        .get();
-
-    for (var creator in nonAcadPostsSnapshot.docs) {
-      var postsSnapshot = await FirebaseFirestore.instance
+      // Fetch posts for the Non-Academic department
+      var nonAcadPostsSnapshot = await FirebaseFirestore.instance
           .collection('Posts')
-          .where('status', isEqualTo: 'Accepted')
+          .where('department', isEqualTo: 'Non Academic')
+          .where('status', isEqualTo: 'accepted') // Filter by accepted posts
           .get();
 
-      for (var post in postsSnapshot.docs) {
+      // Process each post in the Non-Academic department
+      for (var post in nonAcadPostsSnapshot.docs) {
         var postData = post.data();
-        postData['creatorId'] = creator.id; // Save creator ID for avatar usage
-        postData['clubName'] = creator['clubName'] ??
-            'Unknown Club'; // Assuming there is a 'clubName' field in the creator document
-        postData['department'] =
-            'Non Academic'; // Add department info to postData
+        postData['creatorId'] = post.id; // Add creator ID
         acceptedPosts.add(postData);
       }
-    }
 
-    // Sort posts by timestamp in descending order (latest first)
-    acceptedPosts.sort((a, b) {
-      Timestamp timestampA = a['timestamp'] ?? Timestamp(0, 0);
-      Timestamp timestampB = b['timestamp'] ?? Timestamp(0, 0);
-      return timestampB.compareTo(timestampA); // Sort descending
-    });
+      // Sort posts by timestamp in descending order (latest first)
+      acceptedPosts.sort((a, b) {
+        Timestamp timestampA = a['timestamp'] ?? Timestamp(0, 0);
+        Timestamp timestampB = b['timestamp'] ?? Timestamp(0, 0);
+        return timestampB.compareTo(timestampA); // Sort descending
+      });
+    } catch (e) {
+      print('Error fetching posts: $e');
+    }
 
     return acceptedPosts;
   }
