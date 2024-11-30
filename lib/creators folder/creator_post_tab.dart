@@ -90,6 +90,43 @@ class UserPostsScreen extends StatelessWidget {
                             },
                           ),
                         ),
+                      const SizedBox(height: 8),
+                      // Checkboxes for approvals
+                      FutureBuilder<QuerySnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('Posts')
+                            .doc(posts[index].id)
+                            .collection('approvals')
+                            .get(),
+                        builder: (context, approvalSnapshot) {
+                          if (approvalSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          }
+
+                          if (!approvalSnapshot.hasData ||
+                              approvalSnapshot.data!.docs.isEmpty) {
+                            return const Text('No approvals available.');
+                          }
+
+                          final approvals = approvalSnapshot.data!.docs;
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: approvals.map((approval) {
+                              final approvalData =
+                                  approval.data() as Map<String, dynamic>;
+                              final adminId = approvalData['adminId'];
+                              final status = approvalData['status'];
+
+                              return ListTile(
+                                title: Text(adminId),
+                                trailing: getApprovalStatusIcon(status),
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -99,5 +136,16 @@ class UserPostsScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Widget getApprovalStatusIcon(String status) {
+    switch (status) {
+      case 'accepted':
+        return const Icon(Icons.check_box, color: Colors.green);
+      case 'rejected':
+        return const Icon(Icons.cancel, color: Colors.red);
+      default:
+        return const Icon(Icons.check_box_outline_blank, color: Colors.grey);
+    }
   }
 }

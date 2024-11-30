@@ -156,7 +156,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         ), // Move it up and apply left/right margins
         padding: const EdgeInsets.symmetric(
             horizontal: 10, vertical: 5), // Padding for better spacing
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.transparent,
         ),
         child: Row(

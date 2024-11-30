@@ -104,14 +104,14 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           // Background image using Network Image
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(
-                    'https://2.bp.blogspot.com/-NWl1vNjTW2I/Wo1n0TGTdEI/AAAAAAAAAF8/lgCLEeq5OV8xllNuIc5jDIPFPApY-5HdgCLcBGAs/s1600/ndmu.jpg'),
+                image: AssetImage('assets/ndmu.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
+
           SingleChildScrollView(
             child: Column(
               mainAxisAlignment:
