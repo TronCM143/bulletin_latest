@@ -71,26 +71,79 @@ class _AddPostDialogState extends State<AddPostDialog> {
         _isSaving = true; // Show loading state
       });
 
-      Timestamp timestamp = Timestamp.now();
+      final DateTime now = DateTime.now();
+      final String time = now.hour.toString().padLeft(2, '0') +
+          now.minute.toString().padLeft(2, '0'); // Format time as HHMM
+      final String month =
+          now.month.toString().padLeft(2, '0'); // Format month as MM
+      final String year = now.year.toString(); // Format year as YYYY
+      final String baseId =
+          '${time}_${month}_${year}_${widget.clubName}'; // Base ID format
 
       try {
-        List<String> imageUrls =
-            await _uploadImages(); // Upload images and get URLs
+        // Initialize the approvals list
+        final List<String> adminIds = [
+          "ACAD_VP",
+          "CAS_DEAN",
+          "CBA_DEAN",
+          "CEAC_DEAN",
+          "CED_DEAN",
+          "DSA",
+          "QUAPS",
+          "VP_ADMIN",
+        ];
+
+        // Filter out department-specific _DEAN admin if post matches the user's department
+        final filteredAdminIds = adminIds.where((adminId) {
+          return adminId.endsWith('_DEAN')
+              ? adminId.startsWith(widget.clubDepartment)
+              : true;
+        }).toList();
+
+        // Upload images and get URLs
+        List<String> imageUrls = await _uploadImages();
 
         CollectionReference postsCollection =
             FirebaseFirestore.instance.collection('Posts');
 
-        // Save the post to Firestore under the creator's document
-        await postsCollection.doc(title).set({
+        // Check for existing documents with the same baseId
+        QuerySnapshot existingPosts = await postsCollection
+            .where(FieldPath.documentId, isGreaterThanOrEqualTo: baseId)
+            .get();
+
+        int increment = 0;
+        for (var doc in existingPosts.docs) {
+          if (doc.id.startsWith(baseId)) {
+            increment++;
+          }
+        }
+
+        // Add increment to the UID if necessary
+        String finalDocId =
+            increment > 0 ? '${baseId}_${increment + 1}' : '${baseId}_1';
+
+        // Create the main post document
+        DocumentReference postDocRef = postsCollection.doc(finalDocId);
+        await postDocRef.set({
           'club_Id': widget.clubEmail,
           'department': widget.clubDepartment,
           'title': title,
           'content': content,
-          'timestamp': timestamp,
-          'status': 'pending', // Initially set status to 'Pending'
+          'timestamp': Timestamp.now(),
           'clubName': widget.clubName, // Pass clubName to Firestore
           'imageUrls': imageUrls, // Attach the list of image URLs
         });
+
+        // Add approvals as a subcollection
+        CollectionReference approvalsSubCollection =
+            postDocRef.collection('approvals');
+
+        for (var adminId in filteredAdminIds) {
+          await approvalsSubCollection.doc(adminId).set({
+            'adminId': adminId,
+            'status': 'pending', // Default status is pending
+          });
+        }
 
         _titleController.clear();
         _contentController.clear();

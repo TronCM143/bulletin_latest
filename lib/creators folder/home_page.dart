@@ -82,7 +82,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   Stream<QuerySnapshot> getDepartmentStream(String department) {
     return FirebaseFirestore.instance
         .collection('Posts')
-        .where('status', isEqualTo: 'accepted')
+        .where('generalStatus', isEqualTo: 'accepted')
         .snapshots(); // Get real-time snapshots for accepted posts
   }
 
