@@ -79,11 +79,45 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   }
 
   // Define the method to get the stream for the creator's department
-  Stream<QuerySnapshot> getDepartmentStream(String department) {
+  Stream<List<DocumentSnapshot>> getDepartmentStream(String department) {
     return FirebaseFirestore.instance
         .collection('Posts')
-        .where('generalStatus', isEqualTo: 'accepted')
-        .snapshots(); // Get real-time snapshots for accepted posts
+        .where('status', isEqualTo: 'accepted') // Only fetch accepted posts
+        .snapshots()
+        .asyncMap((postsSnapshot) async {
+      List<DocumentSnapshot> validPosts = [];
+
+      print('Fetched ${postsSnapshot.docs.length} posts');
+
+      for (var postDoc in postsSnapshot.docs) {
+        // Query the 'approvals' sub-collection for this post
+        var approvalsSnapshot =
+            await postDoc.reference.collection('approvals').get();
+
+        print('Approvals for post: ${approvalsSnapshot.docs.length}');
+
+        bool allAccepted = true; // Assume all approvals are accepted
+
+        // Loop through all the approval documents
+        for (var approvalDoc in approvalsSnapshot.docs) {
+          print('Approval status: ${approvalDoc.data()['status']}');
+
+          // Check if all approvals have 'accepted' status
+          if (approvalDoc.data()['status'] != 'accepted') {
+            allAccepted = false;
+            break; // No need to check further if one approval isn't accepted
+          }
+        }
+
+        // If all approvals are 'accepted', add this post to the validPosts list
+        if (allAccepted) {
+          validPosts.add(postDoc);
+        }
+      }
+
+      // Return the filtered list of posts with accepted approvals
+      return validPosts;
+    });
   }
 
   // Method to refresh the posts list
@@ -219,7 +253,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
       child: Column(
         children: [
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
+            child: StreamBuilder<List<DocumentSnapshot>>(
               stream: department.isNotEmpty
                   ? getDepartmentStream(department)
                   : null,
@@ -229,23 +263,26 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                List<DocumentSnapshot> allPosts = [];
-
-                if (departmentSnapshot.hasData) {
-                  allPosts = departmentSnapshot.data!.docs;
+                if (departmentSnapshot.hasError) {
+                  return Center(
+                      child: Text('Error: ${departmentSnapshot.error}'));
                 }
 
+                List<DocumentSnapshot> allPosts = departmentSnapshot.data ?? [];
+
+                // Log if no posts are found
+                if (allPosts.isEmpty) {
+                  return const Center(
+                      child: Text('No accepted posts available.'));
+                }
+
+                // Sort posts by timestamp (if available)
                 allPosts.sort((a, b) {
                   final aTimestamp = a['timestamp'] as Timestamp?;
                   final bTimestamp = b['timestamp'] as Timestamp?;
                   return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ??
                       0;
                 });
-
-                if (allPosts.isEmpty) {
-                  return const Center(
-                      child: Text('No accepted posts available.'));
-                }
 
                 return ListView.builder(
                   itemCount: allPosts.length,
