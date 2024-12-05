@@ -23,9 +23,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
   String email = 'Loading...';
   String? profileImageURL; // Variable to hold the profile image URL
 
-  late Future<List<Map<String, dynamic>>> _acceptedPostsFuture =
-      Future.value([]); // Future for accepted posts
-
   @override
   void initState() {
     super.initState();
@@ -40,8 +37,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
         schoolId = id;
       });
       _loadProfileImage();
-      _acceptedPostsFuture =
-          fetchAcceptedPosts(department); // Initial data load
     }, context);
   }
 
@@ -81,7 +76,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Future<void> _refreshPosts() async {
     setState(() {
       // Refetch accepted posts on refresh
-      _acceptedPostsFuture = fetchAcceptedPosts(department);
     });
   }
 
@@ -118,161 +112,173 @@ class _StudentHomePageState extends State<StudentHomePage> {
         ),
         body: RefreshIndicator(
           onRefresh: _refreshPosts, // Pull-to-refresh triggers this method
-          child: Column(
-            children: [
-              Expanded(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _acceptedPostsFuture, // Use the future variable
-                  builder: (context,
-                      AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+          child: StreamBuilder<List<Map<String, dynamic>>>(
+            stream:
+                getAcceptedPostsStream(department), // Initialize stream here
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                    if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-                    final acceptedPosts = snapshot.data ?? [];
+              final acceptedPosts = snapshot.data ?? [];
 
-                    if (acceptedPosts.isEmpty) {
-                      return const Center(
-                          child: Text('No accepted posts available.'));
-                    }
+              if (acceptedPosts.isEmpty) {
+                return const Center(
+                    child: Text('No accepted posts available.'));
+              }
 
-                    return ListView.builder(
-                      itemCount: acceptedPosts.length,
-                      itemBuilder: (context, index) {
-                        final postData = acceptedPosts[index];
+              return ListView.builder(
+                itemCount: acceptedPosts.length,
+                itemBuilder: (context, index) {
+                  final postData = acceptedPosts[index];
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 15),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    ProfileAvatar(
-                                        creatorId: postData['club_Id']),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        // Club name
-                                        Text(
-                                          postData['clubName'] ??
-                                              'Unknown Club',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors
-                                                .blue, // Optional club name color
-                                          ),
-                                        ),
-                                        // Timestamp
-                                        Text(
-                                          postData['timestamp'] != null
-                                              ? DateFormat(
-                                                      'hh:mm a EEE. MMM dd yyyy')
-                                                  .format((postData['timestamp']
-                                                          as Timestamp)
-                                                      .toDate())
-                                              : 'N/A',
-                                          style: const TextStyle(
-                                              color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                // Post title
-                                Text(
-                                  postData['title'] ?? 'N/A',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                // Post content
-                                Text(
-                                  postData['content'] ?? 'N/A',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                                const SizedBox(height: 8),
-                                if (postData['imageUrls'] != null &&
-                                    (postData['imageUrls'] as List).isNotEmpty)
-                                  SizedBox(
-                                    height: 100, // Adjust height as needed
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: (postData['imageUrls'] as List)
-                                          .length,
-                                      itemBuilder: (context, imageIndex) {
-                                        return Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 8.0),
-                                          child: Image.network(
-                                            (postData['imageUrls']
-                                                as List)[imageIndex],
-                                            fit: BoxFit.cover,
-                                          ),
-                                        );
-                                      },
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              ProfileAvatar(creatorId: postData['club_Id']),
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Club name
+                                  Text(
+                                    postData['clubName'] ?? 'Unknown Club',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors
+                                          .blue, // Optional club name color
                                     ),
                                   ),
-                              ],
+                                  // Timestamp
+                                  Text(
+                                    postData['timestamp'] != null
+                                        ? DateFormat('hh:mm a EEE. MMM dd yyyy')
+                                            .format((postData['timestamp']
+                                                    as Timestamp)
+                                                .toDate())
+                                        : 'N/A',
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Post title
+                          Text(
+                            postData['title'] ?? 'N/A',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+                          const SizedBox(height: 8),
+                          // Post content
+                          Text(
+                            postData['content'] ?? 'N/A',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 8),
+                          if (postData['imageUrls'] != null &&
+                              (postData['imageUrls'] as List).isNotEmpty)
+                            SizedBox(
+                              height: 100, // Adjust height as needed
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount:
+                                    (postData['imageUrls'] as List).length,
+                                itemBuilder: (context, imageIndex) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Image.network(
+                                      (postData['imageUrls']
+                                          as List)[imageIndex],
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ));
   }
 
-  // Function to fetch accepted posts from the student's department and Non-Academic department
-  // Function to fetch accepted posts for the student's department and Non-Academic department
-  Future<List<Map<String, dynamic>>> fetchAcceptedPosts(
-      String department) async {
+  Stream<List<Map<String, dynamic>>> getAcceptedPostsStream(
+      String department) async* {
     List<Map<String, dynamic>> acceptedPosts = [];
 
     try {
-      // Fetch posts for the student's department
-      var departmentPostsSnapshot = await FirebaseFirestore.instance
+      // Fetch posts for the department
+      var postsSnapshot = await FirebaseFirestore.instance
           .collection('Posts')
           .where('department', isEqualTo: department)
-          .where('status', isEqualTo: 'accepted') // Filter by accepted posts
           .get();
 
-      // Process each post in the student's department
-      for (var post in departmentPostsSnapshot.docs) {
+      // Process each post in the department
+      for (var post in postsSnapshot.docs) {
         var postData = post.data();
-        postData['creatorId'] = post.id; // Add creator ID
-        acceptedPosts.add(postData);
+
+        // Fetch the approvals for the current post
+        final approvalsSnapshot =
+            await post.reference.collection('approvals').get();
+
+        if (approvalsSnapshot.docs.isNotEmpty) {
+          // Check if all approvals are accepted
+          bool allAccepted = approvalsSnapshot.docs
+              .every((doc) => doc['status'] == 'accepted');
+
+          // If all approvals are accepted, add the post to the accepted posts list
+          if (allAccepted) {
+            postData['creatorId'] = post.id; // Add creator ID
+            acceptedPosts.add(postData);
+          }
+        }
       }
 
       // Fetch posts for the Non-Academic department
       var nonAcadPostsSnapshot = await FirebaseFirestore.instance
           .collection('Posts')
           .where('department', isEqualTo: 'Non Academic')
-          .where('status', isEqualTo: 'accepted') // Filter by accepted posts
           .get();
 
       // Process each post in the Non-Academic department
       for (var post in nonAcadPostsSnapshot.docs) {
         var postData = post.data();
-        postData['creatorId'] = post.id; // Add creator ID
-        acceptedPosts.add(postData);
+
+        // Fetch the approvals for the current post
+        final approvalsSnapshot =
+            await post.reference.collection('approvals').get();
+
+        if (approvalsSnapshot.docs.isNotEmpty) {
+          // Check if all approvals are accepted
+          bool allAccepted = approvalsSnapshot.docs
+              .every((doc) => doc['status'] == 'accepted');
+
+          // If all approvals are accepted, add the post to the accepted posts list
+          if (allAccepted) {
+            postData['creatorId'] = post.id; // Add creator ID
+            acceptedPosts.add(postData);
+          }
+        }
       }
 
       // Sort posts by timestamp in descending order (latest first)
@@ -285,6 +291,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
       print('Error fetching posts: $e');
     }
 
-    return acceptedPosts;
+    yield acceptedPosts; // Emit the posts as a stream
   }
 }
