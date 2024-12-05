@@ -225,9 +225,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Stream<List<Map<String, dynamic>>> getAcceptedPostsStream(
       String department) async* {
     List<Map<String, dynamic>> acceptedPosts = [];
+    Set<String> seenPostIds = {}; // Set to track seen post IDs
 
     try {
-      // Fetch posts for the department
+      // Fetch posts for the student's department
       var postsSnapshot = await FirebaseFirestore.instance
           .collection('Posts')
           .where('department', isEqualTo: department)
@@ -246,10 +247,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
           bool allAccepted = approvalsSnapshot.docs
               .every((doc) => doc['status'] == 'accepted');
 
-          // If all approvals are accepted, add the post to the accepted posts list
-          if (allAccepted) {
+          // If all approvals are accepted and post isn't already in the list, add it
+          if (allAccepted && !seenPostIds.contains(post.id)) {
             postData['creatorId'] = post.id; // Add creator ID
             acceptedPosts.add(postData);
+            seenPostIds.add(post.id); // Mark this post as seen
           }
         }
       }
@@ -273,10 +275,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
           bool allAccepted = approvalsSnapshot.docs
               .every((doc) => doc['status'] == 'accepted');
 
-          // If all approvals are accepted, add the post to the accepted posts list
-          if (allAccepted) {
+          // If all approvals are accepted and post isn't already in the list, add it
+          if (allAccepted && !seenPostIds.contains(post.id)) {
             postData['creatorId'] = post.id; // Add creator ID
             acceptedPosts.add(postData);
+            seenPostIds.add(post.id); // Mark this post as seen
           }
         }
       }
