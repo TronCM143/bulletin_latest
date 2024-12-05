@@ -101,16 +101,16 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
                 hint: Text('Select Department'),
                 items: [
                   DropdownMenuItem(
-                      value: 'ced', child: Text('College of Education')),
+                      value: 'CED', child: Text('College of Education')),
                   DropdownMenuItem(
-                      value: 'ceac',
+                      value: 'CEAC',
                       child: Text(
                           'College of Engineering Architechture and Com...')),
                   DropdownMenuItem(
-                      value: 'cba',
+                      value: 'CBA',
                       child: Text('College of Business Administration')),
                   DropdownMenuItem(
-                      value: 'cas',
+                      value: 'CAS',
                       child: Text('College of Arts and Sciences')),
                   DropdownMenuItem(
                       value: 'Non Academic', child: Text('Non Academic')),
