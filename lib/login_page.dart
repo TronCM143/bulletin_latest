@@ -52,6 +52,7 @@ class _LoginPageState extends State<LoginPage> {
         }
 
         // If not found in users_students, check in creator collection
+        // If not found in users_students, check in creator collection
         DocumentSnapshot creatorDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc('creators')
@@ -61,16 +62,25 @@ class _LoginPageState extends State<LoginPage> {
 
         if (creatorDoc.exists) {
           String storedPassword = creatorDoc['password'];
+          String approvalStatus = creatorDoc['approvalStatus'];
           if (storedPassword == password) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CreatorHomePage(
-                  clubEmail: id, // Pass club email
+            if (approvalStatus == 'accepted') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreatorHomePage(
+                    clubEmail: id, // Pass club email
+                  ),
                 ),
-              ),
-            );
-            return; // Exit the function if creator login is successful
+              );
+              return; // Exit the function if creator login is successful
+            } else {
+              // Account is not accepted
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Account not accepted yet.')),
+              );
+              return; // Exit if account is not accepted
+            }
           } else {
             // Incorrect password for creator collection
             ScaffoldMessenger.of(context).showSnackBar(

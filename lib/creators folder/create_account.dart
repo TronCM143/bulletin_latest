@@ -54,7 +54,7 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
             'email': clubEmail,
             'department': _selectedDepartment,
             'password': password, // Handle securely in production
-            'createdAt': FieldValue.serverTimestamp(), // Add timestamp
+            'approvalStatus': 'pending',
           });
 
           // Show success message

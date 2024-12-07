@@ -104,11 +104,6 @@ class UserPostsScreen extends StatelessWidget {
                             return const CircularProgressIndicator();
                           }
 
-                          if (!approvalSnapshot.hasData ||
-                              approvalSnapshot.data!.docs.isEmpty) {
-                            return const Text('No approvals available.');
-                          }
-
                           final approvals = approvalSnapshot.data!.docs;
 
                           return Column(
@@ -120,6 +115,7 @@ class UserPostsScreen extends StatelessWidget {
                               final status = approvalData['status'];
 
                               return ListTile(
+                                minTileHeight: 2,
                                 title: Text(adminId),
                                 trailing: getApprovalStatusIcon(status),
                               );
