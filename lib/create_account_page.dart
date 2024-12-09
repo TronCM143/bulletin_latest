@@ -18,7 +18,7 @@ class CreateAccountPage extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                             image: DecorationImage(
-                                image: AssetImage('assets/CEAC.jpg'),
+                                image: AssetImage('assets/ALL.png'),
                                 fit: BoxFit.cover)),
                       ), // i want to put an image here
                     ),
@@ -51,7 +51,7 @@ class CreateAccountPage extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                       image: DecorationImage(
-                          image: AssetImage('assets/OSAD.jpg'),
+                          image: AssetImage('assets/OSAD.png'),
                           fit: BoxFit.cover)),
                 ),
                 Center(

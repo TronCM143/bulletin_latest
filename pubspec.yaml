@@ -1,14 +1,14 @@
 name: bulletin
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
-
-environment:
-  sdk: ^3.6.0-255.0.dev
-# version: 1.0.0+1
+# version: 0.1.0
 
 # environment:
-#   sdk: ^3.6.0-216.1.beta
+#   sdk: ^3.6.0-255.0.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0-216.1.beta
 dependencies:
   flutter:
     sdk: flutter
@@ -20,6 +20,7 @@ dependencies:
   firebase_storage: ^12.3.2
   intl: ^0.19.0
   flutter_local_notifications: ^17.2.3
+  photo_view: ^0.15.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -34,5 +35,6 @@ flutter:
     - assets/CEAC.jpg
     - assets/CED.jpg
     - assets/CBA.jpg
-    - assets/OSAD.jpg
+    - assets/OSAD.png
+    - assets/ALL.png
 

@@ -2,6 +2,8 @@ import 'package:bulletin/student%20folder/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 import '../profile_avatar.dart';
 
@@ -75,6 +77,36 @@ class _StudentHomePageState extends State<StudentHomePage> {
     setState(() {
       // Refetch accepted posts on refresh
     });
+  }
+
+  // Method to show image preview on tap
+  void _showImagesPreview(
+      BuildContext context, List<String> imageUrls, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.black, // Background color for the screen
+            body: PhotoViewGallery.builder(
+              itemCount: imageUrls.length,
+              builder: (context, index) {
+                return PhotoViewGalleryPageOptions(
+                  imageProvider: NetworkImage(imageUrls[index]),
+                  minScale: PhotoViewComputedScale.contained,
+                  maxScale: PhotoViewComputedScale.covered * 2,
+                );
+              },
+              scrollPhysics: const BouncingScrollPhysics(),
+              backgroundDecoration: const BoxDecoration(
+                color: Colors.transparent, // Transparent background
+              ),
+              pageController: PageController(initialPage: initialIndex),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -198,12 +230,24 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                 itemCount:
                                     (postData['imageUrls'] as List).length,
                                 itemBuilder: (context, imageIndex) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Image.network(
-                                      (postData['imageUrls']
-                                          as List)[imageIndex],
-                                      fit: BoxFit.cover,
+                                  return GestureDetector(
+                                    onTap: () {
+                                      // Open image preview when tapped
+                                      _showImagesPreview(
+                                          context,
+                                          (postData['imageUrls'] as List)
+                                              .map((e) => e.toString())
+                                              .toList(),
+                                          imageIndex);
+                                    },
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Image.network(
+                                        (postData['imageUrls']
+                                            as List)[imageIndex],
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   );
                                 },

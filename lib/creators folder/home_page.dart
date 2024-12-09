@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'add_post.dart';
-import 'functions.dart'; // Import the functions file
+import 'functions.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class CreatorHomePage extends StatefulWidget {
   final String clubId; // Club email to identify the creator
@@ -105,6 +107,35 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   // Method to refresh the posts list
   Future<void> _refreshPosts() async {
     setState(() {});
+  }
+
+  void _showImagesPreview(
+      BuildContext context, List<String> imageUrls, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.black, // Background color for the screen
+            body: PhotoViewGallery.builder(
+              itemCount: imageUrls.length,
+              builder: (context, index) {
+                return PhotoViewGalleryPageOptions(
+                  imageProvider: NetworkImage(imageUrls[index]),
+                  minScale: PhotoViewComputedScale.contained,
+                  maxScale: PhotoViewComputedScale.covered * 2,
+                );
+              },
+              scrollPhysics: const BouncingScrollPhysics(),
+              backgroundDecoration: const BoxDecoration(
+                color: Colors.transparent, // Transparent background
+              ),
+              pageController: PageController(initialPage: initialIndex),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -237,25 +268,22 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No accepted posts available.'));
+            return const Center(child: Text('No posts available.'));
           }
 
-          List<DocumentSnapshot> allPosts = snapshot.data!;
-
-          allPosts.sort((a, b) {
+          List<DocumentSnapshot> posts = snapshot.data!;
+          posts.sort((a, b) {
             final aTimestamp = a['timestamp'] as Timestamp?;
             final bTimestamp = b['timestamp'] as Timestamp?;
             return bTimestamp?.compareTo(aTimestamp ?? Timestamp.now()) ?? 0;
           });
 
           return ListView.builder(
-            itemCount: allPosts.length,
+            itemCount: posts.length,
             itemBuilder: (context, index) {
-              final postData = allPosts[index].data() as Map<String, dynamic>;
-
+              var postData = posts[index].data() as Map<String, dynamic>;
               return Card(
-                margin:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -264,43 +292,25 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                       Row(
                         children: [
                           ProfileAvatar(creatorId: postData['club_Id']),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(clubName,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
                               Text(
-                                postData['clubName'] ?? 'N/A',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                              Text(
-                                postData['timestamp'] != null
-                                    ? DateFormat('hh:mm a  EEE. MMM dd yyyy')
-                                        .format(
-                                            (postData['timestamp'] as Timestamp)
-                                                .toDate())
-                                    : 'N/A',
+                                DateFormat.yMMMd().add_jm().format(
+                                    postData['timestamp']
+                                        .toDate()), // Post timestamp
                                 style: const TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        postData['title'] ?? 'N/A',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        postData['content'] ?? 'N/A',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
+                      Text(postData['content'] ?? ''),
                       if (postData['imageUrls'] != null &&
                           (postData['imageUrls'] as List).isNotEmpty)
                         SizedBox(
@@ -309,16 +319,26 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                             scrollDirection: Axis.horizontal,
                             itemCount: (postData['imageUrls'] as List).length,
                             itemBuilder: (context, imageIndex) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: Image.network(
-                                  (postData['imageUrls'] as List)[imageIndex],
-                                  fit: BoxFit.cover,
+                              return GestureDetector(
+                                onTap: () {
+                                  _showImagesPreview(
+                                    context,
+                                    (postData['imageUrls'] as List)
+                                        .cast<String>(),
+                                    imageIndex, // Pass the tapped image index
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Image.network(
+                                    (postData['imageUrls'] as List)[imageIndex],
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               );
                             },
                           ),
-                        ),
+                        )
                     ],
                   ),
                 ),
@@ -332,6 +352,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
 
   Widget buildUserPostsTab() {
     return UserPostsScreen(
-        clubId: widget.clubId); // Create a new screen to display posts
+      clubId: widget.clubId,
+    );
   }
 }

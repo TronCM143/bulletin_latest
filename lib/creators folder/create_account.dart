@@ -77,7 +77,9 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
 
             // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Registration successful!')),
+              SnackBar(
+                  content: Text(
+                      'Registration successful. Wait for the admin to verify your account')),
             );
 
             // Clear all fields
