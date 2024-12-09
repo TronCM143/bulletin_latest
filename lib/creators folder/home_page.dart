@@ -7,9 +7,9 @@ import 'add_post.dart';
 import 'functions.dart'; // Import the functions file
 
 class CreatorHomePage extends StatefulWidget {
-  final String clubEmail; // Club email to identify the creator
+  final String clubId; // Club email to identify the creator
 
-  const CreatorHomePage({super.key, required this.clubEmail});
+  const CreatorHomePage({super.key, required this.clubId});
 
   @override
   _CreatorHomePageState createState() => _CreatorHomePageState();
@@ -20,6 +20,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   String clubName = 'Loading...';
   String department = 'Loading...';
   String email = 'Loading...';
+
   String? profileImageURL; // Variable to hold the profile image URL
   int _selectedIndex = 0;
 
@@ -27,11 +28,12 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   void initState() {
     super.initState();
     // Use the fetchCreatorInfo method from CreatorFunctions
-    CreatorFunctions.fetchCreatorInfo(widget.clubEmail, (name, dept, em) {
+    CreatorFunctions.fetchCreatorInfo(widget.clubId, (name, dept, em, clubId) {
       setState(() {
         clubName = name;
         department = dept; // Store the department
         email = em;
+        clubId = widget.clubId;
       });
       _loadProfileImage(); // Load the profile image after fetching info
     }, context);
@@ -42,10 +44,8 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     try {
       // Get the document from Firestore
       final creatorDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc('creators')
-          .collection(email) // Use clubEmail as the collection name
-          .doc('account_details') // Use the creator's email as the document ID
+          .collection('Users')
+          .doc(widget.clubId) // Fetch using clubId
           .get();
 
       if (creatorDoc.exists) {
@@ -146,11 +146,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             onPressed: () {
               // Use the showProfileDialog method from CreatorFunctions
               CreatorFunctions.showProfileDialog(
-                context,
-                clubName,
-                department,
-                email,
-              );
+                  context, clubName, department, email, widget.clubId);
             },
             tooltip: 'Profile',
           ),
@@ -214,6 +210,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             context: context,
             builder: (BuildContext context) {
               return AddPostDialog(
+                  clubId: widget.clubId,
                   clubEmail: email,
                   clubName: clubName,
                   clubDepartment: department); // Pass the club email
@@ -335,6 +332,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
 
   Widget buildUserPostsTab() {
     return UserPostsScreen(
-        clubEmail: email); // Create a new screen to display posts
+        clubId: widget.clubId); // Create a new screen to display posts
   }
 }

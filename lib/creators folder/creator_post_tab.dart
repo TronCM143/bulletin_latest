@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class UserPostsScreen extends StatelessWidget {
-  final String clubEmail;
+  final String clubId;
 
-  const UserPostsScreen({super.key, required this.clubEmail});
+  const UserPostsScreen({super.key, required this.clubId});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class UserPostsScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Posts')
-            .where('club_Id', isEqualTo: clubEmail)
+            .where('club_Id', isEqualTo: clubId)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

@@ -44,10 +44,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Future<void> _loadProfileImage() async {
     try {
       final studentDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc('students') // Ensure correct collection name
-          .collection(schoolId)
-          .doc('account_details') // Use the student's ID as the document ID
+          .collection('Users')
+          .doc(schoolId) // Use the student's ID as the document ID
           .get();
 
       if (studentDoc.exists) {

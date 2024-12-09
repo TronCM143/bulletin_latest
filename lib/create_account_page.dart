@@ -7,41 +7,70 @@ class CreateAccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Create Account')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Select Account Type:', style: TextStyle(fontSize: 20)),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Student account creation page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        StudentCreateAccount(), // Replace with your actual Student page
+      body: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                            image: DecorationImage(
+                                image: AssetImage('assets/CEAC.jpg'),
+                                fit: BoxFit.cover)),
+                      ), // i want to put an image here
+                    ),
+                  ],
+                ),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Navigate to Student account creation page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StudentCreateAccount(),
+                        ),
+                      );
+                    },
+                    child: Text('Student'),
                   ),
-                );
-              },
-              child: Text('Student'),
+                ),
+              ],
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to Creator account creation page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        CreatorCreateAccount(), // Replace with your actual Creator page
+          ),
+          Divider(
+            color: Colors.black,
+            height: 1,
+          ),
+          Expanded(
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                          image: AssetImage('assets/OSAD.jpg'),
+                          fit: BoxFit.cover)),
+                ),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreatorCreateAccount(),
+                        ),
+                      );
+                    },
+                    child: Text('Creator'),
                   ),
-                );
-              },
-              child: Text('Creator'),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

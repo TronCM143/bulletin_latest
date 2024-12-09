@@ -7,13 +7,15 @@ import 'functions.dart'; // Import the functions file
 class ProfileDialog extends StatefulWidget {
   final String clubName; // Club name of the creator
   final String department; // Department of the creator
-  final String email; // Email of the creator
+  final String email;
+  final String clubId; // Email of the creator
 
   const ProfileDialog({
     super.key,
     required this.clubName,
     required this.department,
     required this.email,
+    required this.clubId,
   });
 
   @override
@@ -76,7 +78,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                               setState(() {
                                 _profileImageURL = url;
                               });
-                            }, widget.email);
+                            }, widget.clubId);
                           },
                         ),
                         ListTile(
@@ -92,7 +94,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                               setState(() {
                                 _profileImageURL = url;
                               });
-                            }, widget.email);
+                            }, widget.clubId);
                           },
                         ),
                       ],
@@ -123,6 +125,11 @@ class _ProfileDialogState extends State<ProfileDialog> {
             // Club Name
             Text(
               'Club Name: ${widget.clubName}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Club ID: ${widget.clubId}',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 10),

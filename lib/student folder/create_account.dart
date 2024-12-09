@@ -27,33 +27,49 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
       final password = _passwordController.text.trim();
 
       try {
-        // Save user data to Firestore
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc('students')
-            .collection(schoolId) // Use clubEmail as the collection name
-            .doc('account_details') // Document for account details
-            .set({
-          'schoolId': schoolId,
-          'firstName': firstName,
-          'lastName': lastName,
-          'email': email,
-          'department': _selectedDepartment,
-          'password': password, // Handle securely in production
-        });
+        final doc = await FirebaseFirestore.instance
+            .collection('Users')
+            .doc(schoolId) // Document for account details
+            .get();
 
-        // Show success message
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Registration successful!')));
+        if (doc.exists) {
+          // Show error message if email already exists
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'ID already exists.',
+                style: TextStyle(color: Colors.red),
+              ),
+              backgroundColor: Colors.white,
+            ),
+          );
+        } else {
+          // Save user data to Firestore
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(schoolId) // Document for account details
+              .set({
+            'schoolId': schoolId,
+            'firstName': firstName,
+            'lastName': lastName,
+            'email': email,
+            'department': _selectedDepartment,
+            'password': password, // Handle securely in production
+          });
 
-        // Clear all fields
-        _clearFields();
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Registration successful!')));
 
-        // Navigate back to LoginPage without stacking
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => LoginPage()),
-          (Route<dynamic> route) => false,
-        );
+          // Clear all fields
+          _clearFields();
+
+          // Navigate back to LoginPage without stacking
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => LoginPage()),
+            (Route<dynamic> route) => false,
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Registration failed: $e')));
@@ -162,8 +178,6 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
                   DropdownMenuItem(
                       value: 'CAS',
                       child: Text('College of Arts and Sciences')),
-                  DropdownMenuItem(
-                      value: 'Non Academic', child: Text('Non Academic')),
                 ],
                 onChanged: (value) {
                   setState(() {

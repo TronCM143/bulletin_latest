@@ -7,13 +7,15 @@ import 'dart:io'; // Import for File
 class AddPostDialog extends StatefulWidget {
   final String clubEmail; // Club email to identify the creator
   final String clubName;
-  final String clubDepartment; // Club name to be passed to Firebase
+  final String clubDepartment;
+  final String clubId;
 
   const AddPostDialog({
     super.key,
     required this.clubEmail,
     required this.clubName,
     required this.clubDepartment,
+    required this.clubId,
   });
 
   @override
@@ -125,12 +127,13 @@ class _AddPostDialogState extends State<AddPostDialog> {
         // Create the main post document
         DocumentReference postDocRef = postsCollection.doc(finalDocId);
         await postDocRef.set({
-          'club_Id': widget.clubEmail,
+          'club_Id': widget.clubId,
+          'clubEmail': widget.clubEmail,
           'department': widget.clubDepartment,
           'title': title,
           'content': content,
           'timestamp': Timestamp.now(),
-          'clubName': widget.clubName, // Pass clubName to Firestore
+          'clubName': widget.clubName,
           'imageUrls': imageUrls, // Attach the list of image URLs
         });
 

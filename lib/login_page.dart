@@ -22,78 +22,69 @@ class _LoginPageState extends State<LoginPage> {
         final id = _idController.text.trim();
         final password = _passwordController.text.trim();
 
-        // First, check in the users_students collection
-        DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc('students')
-            .collection(id)
-            .doc('account_details') // Check by student ID
-            .get();
+        DocumentSnapshot userDoc;
 
-        if (studentDoc.exists) {
-          String storedPassword = studentDoc['password'];
-          if (storedPassword == password) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => StudentHomePage(
-                  schoolId: id,
-                ), // Pass the school ID
-              ),
-            );
-            return; // Exit the function if student login is successful
-          } else {
-            // Incorrect password for students collection
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Incorrect password.')),
-            );
-            return; // Exit if password is incorrect
-          }
+        if (id.startsWith('c')) {
+          // Check in the Users collection for creators
+          userDoc = await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(id)
+              .get();
+        } else {
+          // Check in the Users collection for students
+          userDoc = await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(id)
+              .get();
         }
 
-        // If not found in users_students, check in creator collection
-        // If not found in users_students, check in creator collection
-        DocumentSnapshot creatorDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc('creators')
-            .collection(id) // Use clubEmail as the collection name
-            .doc('account_details') // Check by club email
-            .get();
+        if (userDoc.exists) {
+          String storedPassword = userDoc['password'];
 
-        if (creatorDoc.exists) {
-          String storedPassword = creatorDoc['password'];
-          String approvalStatus = creatorDoc['approvalStatus'];
           if (storedPassword == password) {
-            if (approvalStatus == 'accepted') {
+            if (id.startsWith('c')) {
+              // For creator accounts
+              String approvalStatus = userDoc['approvalStatus'];
+              if (approvalStatus == 'accepted') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreatorHomePage(
+                      clubId: id, // Pass the club ID
+                    ),
+                  ),
+                );
+              } else {
+                // Account is not accepted
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Account not accepted yet.')),
+                );
+              }
+            } else {
+              // For student accounts
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => CreatorHomePage(
-                    clubEmail: id, // Pass club email
+                  builder: (context) => StudentHomePage(
+                    schoolId: id, // Pass the school ID
                   ),
                 ),
               );
-              return; // Exit the function if creator login is successful
-            } else {
-              // Account is not accepted
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Account not accepted yet.')),
-              );
-              return; // Exit if account is not accepted
             }
+            return; // Exit the function if login is successful
           } else {
-            // Incorrect password for creator collection
+            // Incorrect password
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Incorrect password.')),
             );
             return; // Exit if password is incorrect
           }
+        } else {
+          // ID not found
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('ID not found.')),
+          );
         }
-
-        // If neither student ID nor club email is found
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ID not found.')),
-        );
       } catch (e) {
         // Handle any errors that occur during login
         print('Error during login: $e'); // Debug log for developers

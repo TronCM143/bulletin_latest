@@ -25,10 +25,8 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
       try {
         // Check if the email already exists in the 'creator_users' collection
         final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc('creators')
-            .collection(clubEmail) // Use clubEmail as the collection name
-            .doc('account_details') // Document for account details
+            .collection('Users')
+            .doc(clubEmail) // Document for account details
             .get();
 
         if (doc.exists) {
@@ -43,33 +41,54 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
             ),
           );
         } else {
-          // Create a document under the specified collection
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc('creators')
-              .collection(clubEmail) // Use clubEmail as the collection name
-              .doc('account_details') // Document for account details
-              .set({
-            'clubName': clubName,
-            'email': clubEmail,
-            'department': _selectedDepartment,
-            'password': password, // Handle securely in production
-            'approvalStatus': 'pending',
+          // Get the counter document
+          DocumentReference counterRef = FirebaseFirestore.instance
+              .collection('ID_counter')
+              .doc('clubIdCounter');
+
+          // Run a transaction to safely increment the counter
+          await FirebaseFirestore.instance.runTransaction((transaction) async {
+            DocumentSnapshot counterSnapshot =
+                await transaction.get(counterRef);
+
+            if (!counterSnapshot.exists) {
+              throw Exception("Counter document does not exist!");
+            }
+
+            int lastClubId = counterSnapshot['lastClubId'];
+            int newID = lastClubId + 1;
+            String clubID = 'c$newID';
+
+            // Update the counter document
+            transaction.update(counterRef, {'lastClubId': newID});
+
+            // Create a document under the specified collection
+            await FirebaseFirestore.instance
+                .collection('Users')
+                .doc(clubID) // Document for account details
+                .set({
+              'clubName': clubName,
+              'email': clubEmail,
+              'department': _selectedDepartment,
+              'password': password, // Handle securely in production
+              'approvalStatus': 'pending',
+              'clubID': clubID, // Add the auto-incremented creatorID
+            });
+
+            // Show success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Registration successful!')),
+            );
+
+            // Clear all fields
+            _clearFields();
+
+            // Navigate back to LoginPage without stacking
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => LoginPage()),
+              (Route<dynamic> route) => false,
+            );
           });
-
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration successful!')),
-          );
-
-          // Clear all fields
-          _clearFields();
-
-          // Navigate back to LoginPage without stacking
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => LoginPage()),
-            (Route<dynamic> route) => false,
-          );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

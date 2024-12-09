@@ -12,10 +12,8 @@ class StudentFunctions {
       BuildContext context) {
     // Updated signature
     FirebaseFirestore.instance
-        .collection('users')
-        .doc('students')
-        .collection(schoolId)
-        .doc('account_details')
+        .collection('Users')
+        .doc(schoolId)
         .snapshots()
         .listen((studentSnapshot) {
       if (studentSnapshot.exists && studentSnapshot.data() != null) {
@@ -93,11 +91,8 @@ Future<void> uploadImageToFirebase(String filePath,
 Future<void> saveImageURLToFirestore(
     String downloadURL, String schoolId) async {
   try {
-    final studentDocRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc('students')
-        .collection(schoolId)
-        .doc('account_details');
+    final studentDocRef =
+        FirebaseFirestore.instance.collection('Users').doc(schoolId);
     await studentDocRef.set({
       'profileImageURL': downloadURL,
     }, SetOptions(merge: true));
@@ -110,10 +105,8 @@ Future<void> loadProfileImage(
     String schoolId, Function(String?) setProfileImageURL) async {
   try {
     final studentDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc('students')
-        .collection(schoolId)
-        .doc('account_details')
+        .collection('Users')
+        .doc(schoolId)
         .get();
     if (studentDoc.exists &&
         studentDoc.data() != null &&
