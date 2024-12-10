@@ -220,6 +220,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
                     TextField(
                       controller: _titleController,
                       decoration: const InputDecoration(labelText: 'Title'),
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 16.0),
                     TextField(

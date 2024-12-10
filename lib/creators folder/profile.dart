@@ -1,3 +1,4 @@
+import 'package:bulletin/creators%20folder/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io'; // For File
@@ -153,13 +154,16 @@ class _ProfileDialogState extends State<ProfileDialog> {
               icon: const Icon(Icons.settings),
               label: const Text('Settings'),
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            CreatorSettingsPage(clubId: widget.clubId)));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
               ),
             ),
-            const SizedBox(height: 10),
 
             // About Us Button
             ElevatedButton.icon(

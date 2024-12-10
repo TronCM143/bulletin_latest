@@ -112,39 +112,48 @@ class _StudentHomePageState extends State<StudentHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Student Home Page'),
-          actions: [
-            IconButton(
-              icon: CircleAvatar(
-                radius: 20, // Adjust size as needed
-                backgroundImage:
-                    profileImageURL != null && profileImageURL!.isNotEmpty
-                        ? NetworkImage(
-                            profileImageURL!) // Use the profile image URL
-                        : null, // No image will be displayed if URL is empty
-                child: profileImageURL == null || profileImageURL!.isEmpty
-                    ? const Icon(
-                        Icons.person,
-                        size: 24, // Adjust icon size if needed
-                        color: Colors
-                            .white, // Color of the icon when no image is available
-                      )
-                    : null, // No child if profile image exists
-              ),
-              onPressed: () {
-                StudentFunctions.showProfileDialog(
-                    context, firstName, lastName, email, department, schoolId);
-              },
-              tooltip: 'Profile',
-            ),
-          ],
+      appBar: AppBar(
+        backgroundColor: Colors.green,
+        title: const Text(
+          'Home Page',
+          style: TextStyle(
+              fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        body: RefreshIndicator(
-          onRefresh: _refreshPosts, // Pull-to-refresh triggers this method
+        actions: [
+          IconButton(
+            icon: CircleAvatar(
+              radius: 20,
+              backgroundImage:
+                  profileImageURL != null && profileImageURL!.isNotEmpty
+                      ? NetworkImage(profileImageURL!)
+                      : null,
+              child: profileImageURL == null || profileImageURL!.isEmpty
+                  ? const Icon(Icons.person, size: 24, color: Colors.white)
+                  : null,
+            ),
+            onPressed: () {
+              StudentFunctions.showProfileDialog(
+                  context, firstName, lastName, email, department, schoolId);
+            },
+            tooltip: 'Profile',
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/logo_ndmu.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.green.withOpacity(0.15), // Green shade overlay
+              BlendMode.dstATop, // Apply color filter over the image
+            ),
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: _refreshPosts,
           child: StreamBuilder<List<Map<String, dynamic>>>(
-            stream:
-                getAcceptedPostsStream(department), // Initialize stream here
+            stream: getAcceptedPostsStream(department),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -165,7 +174,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 itemCount: acceptedPosts.length,
                 itemBuilder: (context, index) {
                   final postData = acceptedPosts[index];
-
                   return Card(
                     margin: const EdgeInsets.symmetric(
                         vertical: 10, horizontal: 15),
@@ -181,17 +189,14 @@ class _StudentHomePageState extends State<StudentHomePage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // Club name
                                   Text(
                                     postData['clubName'] ?? 'Unknown Club',
                                     style: const TextStyle(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors
-                                          .blue, // Optional club name color
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.black,
                                     ),
                                   ),
-                                  // Timestamp
                                   Text(
                                     postData['timestamp'] != null
                                         ? DateFormat('hh:mm a EEE. MMM dd yyyy')
@@ -206,25 +211,17 @@ class _StudentHomePageState extends State<StudentHomePage> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          // Post title
-                          Text(
-                            postData['title'] ?? 'N/A',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text(postData['title'] ?? 'N/A',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
-                          // Post content
-                          Text(
-                            postData['content'] ?? 'N/A',
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                          Text(postData['content'] ?? 'N/A',
+                              style: const TextStyle(fontSize: 16)),
                           const SizedBox(height: 8),
                           if (postData['imageUrls'] != null &&
                               (postData['imageUrls'] as List).isNotEmpty)
                             SizedBox(
-                              height: 100, // Adjust height as needed
+                              height: 150,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount:
@@ -232,7 +229,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                 itemBuilder: (context, imageIndex) {
                                   return GestureDetector(
                                     onTap: () {
-                                      // Open image preview when tapped
                                       _showImagesPreview(
                                           context,
                                           (postData['imageUrls'] as List)
@@ -261,7 +257,9 @@ class _StudentHomePageState extends State<StudentHomePage> {
               );
             },
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Stream<List<Map<String, dynamic>>> getAcceptedPostsStream(

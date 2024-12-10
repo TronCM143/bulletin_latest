@@ -1,3 +1,4 @@
+import 'package:bulletin/student%20folder/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -101,6 +102,22 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 30),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.settings),
+              label: const Text('Settings'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => SettingsPage(
+                            schoolId: widget.schoolId,
+                          )), // Navigate to the SettingsPage
+                ); // Close the dialog
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+              ),
+            ),
             ElevatedButton.icon(
               icon: const Icon(Icons.info_outline),
               label: const Text('About Us'),

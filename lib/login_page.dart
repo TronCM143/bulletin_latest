@@ -97,6 +97,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size for responsive layout
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       resizeToAvoidBottomInset:
           false, // Prevents layout distortion when keyboard appears
@@ -112,7 +116,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-
           SingleChildScrollView(
             child: Column(
               mainAxisAlignment:
@@ -125,8 +128,11 @@ class _LoginPageState extends State<LoginPage> {
                     widthFactor: 0.85, // 85% width of the screen
                     child: Padding(
                       padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.30,
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                        top: screenHeight *
+                            0.30, // Dynamically adjust top padding based on screen height
+                        bottom: MediaQuery.of(context)
+                            .viewInsets
+                            .bottom, // Adjust bottom padding when keyboard appears
                       ),
                       child: Container(
                         padding: EdgeInsets.all(20),
@@ -147,7 +153,8 @@ class _LoginPageState extends State<LoginPage> {
                               Text(
                                 'Login',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: screenWidth *
+                                      0.08, // Adjust font size based on screen width
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -157,8 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                               TextFormField(
                                 controller: _idController,
                                 decoration: InputDecoration(
-                                  hintText:
-                                      'School ID', // This is the placeholder that disappears
+                                  hintText: 'School ID', // Placeholder text
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.8),
                                   border: OutlineInputBorder(
@@ -179,8 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
                                 decoration: InputDecoration(
-                                  hintText:
-                                      'Password', // This is the placeholder that disappears
+                                  hintText: 'Password', // Placeholder text
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.8),
                                   border: OutlineInputBorder(
@@ -215,7 +220,6 @@ class _LoginPageState extends State<LoginPage> {
                                 children: [
                                   GestureDetector(
                                     onTap: () {
-                                      // Toggle the checkbox when the text is tapped
                                       setState(() {
                                         _rememberMe = !_rememberMe;
                                       });
@@ -237,19 +241,13 @@ class _LoginPageState extends State<LoginPage> {
                                       ],
                                     ),
                                   ),
-                                  TextButton(
-                                    onPressed: () {},
-                                    child: Text(
-                                      'Forgot Password?',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
                                 ],
                               ),
                               SizedBox(height: 5),
                               // Sign In Button
                               SizedBox(
-                                width: 200, // Set your desired width here
+                                width: screenWidth *
+                                    0.5, // Dynamically adjust button width based on screen width
                                 child: ElevatedButton(
                                   onPressed: _login,
                                   style: ElevatedButton.styleFrom(
@@ -262,7 +260,8 @@ class _LoginPageState extends State<LoginPage> {
                                     'Sign In',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 18,
+                                      fontSize: screenWidth *
+                                          0.05, // Dynamically adjust font size
                                     ),
                                   ),
                                 ),
@@ -273,30 +272,25 @@ class _LoginPageState extends State<LoginPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Dont Have Account?',
+                                    'Don\'t Have Account?',
                                     style: TextStyle(color: Colors.white),
                                   ),
-                                  SizedBox(
-                                    // You can keep or remove the SizedBox if not needed
-                                    // Set your desired height if needed
-                                    child: TextButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                CreateAccountPage(),
-                                          ),
-                                        );
-                                      },
-                                      child: Text(
-                                        'Sign Up',
-                                        style: TextStyle(
-                                          color: Colors
-                                              .white, // Set the text color to white
-                                          fontSize:
-                                              16, // Adjust font size as needed
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              CreateAccountPage(),
                                         ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Sign Up',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: screenWidth *
+                                            0.04, // Adjust font size based on screen width
                                       ),
                                     ),
                                   ),
