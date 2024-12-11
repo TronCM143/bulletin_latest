@@ -142,18 +142,21 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(department),
+        backgroundColor: Color.fromARGB(255, 120, 219, 123),
+        title: Text(
+          department,
+          style: const TextStyle(
+              fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         actions: [
           // Additional icon on the left
           IconButton(
             icon: const Icon(
               Icons.notifications_rounded, // Replace with your desired icon
-              color: Colors.green,
+              color: Colors.white,
             ),
             onPressed: () {
               // Add your desired functionality here
-              // For example, navigate to settings screen or show a dialog
-              // Navigator.pushNamed(context, '/settings');
             },
             tooltip: 'Settings',
           ),
@@ -183,12 +186,24 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: [
-          buildHomeTab(), // Home tab content
-          buildUserPostsTab(), // User's posts tab content
-        ],
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/logo_ndmu.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              Colors.green.withOpacity(0.35), // Green shade overlay
+              BlendMode.dstATop, // Apply color filter over the image
+            ),
+          ),
+        ),
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            buildHomeTab(), // Home tab content
+            buildUserPostsTab(), // User's posts tab content
+          ],
+        ),
       ),
       // Floating Action Button for adding a post
       bottomNavigationBar: Container(
@@ -232,7 +247,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           ],
         ),
       ),
-
       // Add the floating action button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -251,7 +265,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         backgroundColor: Colors.lightGreen,
         child: const Icon(Icons.add), // Icon for adding posts
       ),
-
       // Position the floating action button in the center of the bottomNavigationBar
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -309,8 +322,14 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(postData['content'] ?? ''),
+                      const SizedBox(height: 8),
+                      Text(postData['title'] ?? 'N/A',
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text(postData['content'] ?? 'N/A',
+                          style: const TextStyle(fontSize: 16)),
+                      const SizedBox(height: 8),
                       if (postData['imageUrls'] != null &&
                           (postData['imageUrls'] as List).isNotEmpty)
                         SizedBox(
@@ -323,22 +342,23 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                                 onTap: () {
                                   _showImagesPreview(
                                     context,
-                                    (postData['imageUrls'] as List)
-                                        .cast<String>(),
-                                    imageIndex, // Pass the tapped image index
+                                    List<String>.from(postData['imageUrls']),
+                                    imageIndex,
                                   );
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
                                   child: Image.network(
-                                    (postData['imageUrls'] as List)[imageIndex],
+                                    postData['imageUrls'][imageIndex],
+                                    width: 100, // Image width
+                                    height: 100, // Image height
                                     fit: BoxFit.cover,
                                   ),
                                 ),
                               );
                             },
                           ),
-                        )
+                        ),
                     ],
                   ),
                 ),
@@ -351,8 +371,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   }
 
   Widget buildUserPostsTab() {
-    return UserPostsScreen(
-      clubId: widget.clubId,
-    );
+    return UserPostsScreen(clubId: widget.clubId);
   }
 }

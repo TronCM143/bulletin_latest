@@ -95,12 +95,25 @@ class _AddPostDialogState extends State<AddPostDialog> {
           "VP_ADMIN",
         ];
 
-        // Filter out department-specific _DEAN admin if post matches the user's department
-        final filteredAdminIds = adminIds.where((adminId) {
-          return adminId.endsWith('_DEAN')
-              ? adminId.startsWith(widget.clubDepartment)
-              : true;
-        }).toList();
+        List<String> filteredAdminIds;
+
+        if (widget.clubDepartment == 'Non Academic') {
+          // If the department is 'Non Academic', all admins except the DEAN are needed
+          filteredAdminIds = adminIds.where((adminId) {
+            return !adminId.contains('_DEAN');
+          }).toList();
+        } else if (adminIds
+            .any((adminId) => adminId.startsWith(widget.clubDepartment))) {
+          // If the department matches the DEAN's department
+          filteredAdminIds = [
+            '${widget.clubDepartment}_DEAN', // Add the DEAN of the specific department
+            'QUAPS',
+            'DSA' // Add QUAPS
+          ];
+        } else {
+          // Default: add all admins
+          filteredAdminIds = adminIds;
+        }
 
         // Upload images and get URLs
         List<String> imageUrls = await _uploadImages();
