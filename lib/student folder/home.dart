@@ -1,3 +1,4 @@
+import 'package:bulletin/calendar_of_events.dart';
 import 'package:bulletin/student%20folder/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -5,10 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
-import '../profile_avatar.dart';
+import '../profile_avatar.dart'; // Import the new calendar page
 
 class StudentHomePage extends StatefulWidget {
-  final String schoolId; // Id of the student
+  final String schoolId;
 
   const StudentHomePage({super.key, required this.schoolId});
 
@@ -42,12 +43,11 @@ class _StudentHomePageState extends State<StudentHomePage> {
     }, context);
   }
 
-  // Method to load the profile image URL from Firestore
   Future<void> _loadProfileImage() async {
     try {
       final studentDoc = await FirebaseFirestore.instance
           .collection('Users')
-          .doc(schoolId) // Use the student's ID as the document ID
+          .doc(schoolId)
           .get();
 
       if (studentDoc.exists) {
@@ -66,20 +66,17 @@ class _StudentHomePageState extends State<StudentHomePage> {
     }
   }
 
-  // Method to check if the image URL is valid
   bool isValidImageUrl(String? url) {
     return url != null &&
         (url.startsWith('http://') || url.startsWith('https://'));
   }
 
-  // Refresh posts data on pull-to-refresh
   Future<void> _refreshPosts() async {
     setState(() {
       // Refetch accepted posts on refresh
     });
   }
 
-  // Method to show image preview on tap
   void _showImagesPreview(
       BuildContext context, List<String> imageUrls, int initialIndex) {
     Navigator.push(
@@ -87,7 +84,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       MaterialPageRoute(
         builder: (context) {
           return Scaffold(
-            backgroundColor: Colors.black, // Background color for the screen
+            backgroundColor: Colors.black,
             body: PhotoViewGallery.builder(
               itemCount: imageUrls.length,
               builder: (context, index) {
@@ -99,7 +96,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
               },
               scrollPhysics: const BouncingScrollPhysics(),
               backgroundDecoration: const BoxDecoration(
-                color: Colors.transparent, // Transparent background
+                color: Colors.transparent,
               ),
               pageController: PageController(initialPage: initialIndex),
             ),
@@ -120,6 +117,19 @@ class _StudentHomePageState extends State<StudentHomePage> {
               fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.calendar_today,
+              color: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CalendarPage()),
+              );
+            },
+            tooltip: 'Calendar',
+          ),
           IconButton(
             icon: CircleAvatar(
               radius: 20,
@@ -289,51 +299,15 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
           // If all approvals are accepted and post isn't already in the list, add it
           if (allAccepted && !seenPostIds.contains(post.id)) {
-            postData['creatorId'] = post.id; // Add creator ID
+            seenPostIds.add(post.id);
             acceptedPosts.add(postData);
-            seenPostIds.add(post.id); // Mark this post as seen
           }
         }
       }
-
-      // Fetch posts for the Non-Academic department
-      var nonAcadPostsSnapshot = await FirebaseFirestore.instance
-          .collection('Posts')
-          .where('department', isEqualTo: 'Non Academic')
-          .get();
-
-      // Process each post in the Non-Academic department
-      for (var post in nonAcadPostsSnapshot.docs) {
-        var postData = post.data();
-
-        // Fetch the approvals for the current post
-        final approvalsSnapshot =
-            await post.reference.collection('approvals').get();
-
-        if (approvalsSnapshot.docs.isNotEmpty) {
-          // Check if all approvals are accepted
-          bool allAccepted = approvalsSnapshot.docs
-              .every((doc) => doc['status'] == 'accepted');
-
-          // If all approvals are accepted and post isn't already in the list, add it
-          if (allAccepted && !seenPostIds.contains(post.id)) {
-            postData['creatorId'] = post.id; // Add creator ID
-            acceptedPosts.add(postData);
-            seenPostIds.add(post.id); // Mark this post as seen
-          }
-        }
-      }
-
-      // Sort posts by timestamp in descending order (latest first)
-      acceptedPosts.sort((a, b) {
-        Timestamp timestampA = a['timestamp'] ?? Timestamp(0, 0);
-        Timestamp timestampB = b['timestamp'] ?? Timestamp(0, 0);
-        return timestampB.compareTo(timestampA); // Sort descending
-      });
     } catch (e) {
-      print('Error fetching posts: $e');
+      print('Error fetching accepted posts: $e');
     }
 
-    yield acceptedPosts; // Emit the posts as a stream
+    yield acceptedPosts;
   }
 }
