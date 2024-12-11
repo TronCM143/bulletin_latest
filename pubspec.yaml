@@ -1,14 +1,14 @@
 name: bulletin
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0
-
-environment:
-  sdk: ^3.6.0-255.0.dev
-# version: 1.0.0+1
+# version: 0.1.0
 
 # environment:
-#   sdk: ^3.6.0-216.1.beta
+#   sdk: ^3.6.0-255.0.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0-216.1.beta
 dependencies:
   flutter:
     sdk: flutter
@@ -27,7 +27,7 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.0.2
   dio: ^5.7.0
-  open_filex: ^4.5.0
+  # open_filex: ^4.5.0
   path_provider: ^2.1.5
   permission_handler: ^11.3.1
   firebase_messaging: ^15.1.6
