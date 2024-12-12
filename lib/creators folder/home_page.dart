@@ -1,3 +1,4 @@
+import 'package:bulletin/calendar_of_events.dart';
 import 'package:bulletin/creators%20folder/creator_post_tab.dart';
 import 'package:bulletin/profile_avatar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -80,26 +81,38 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     });
   }
 
-  // Define the method to get the stream for the creator's department
   Stream<List<DocumentSnapshot>> getDepartmentStream(String department) async* {
-    final postsSnapshot = await FirebaseFirestore.instance
-        .collection('Posts')
-        .where('department', isEqualTo: department)
-        .get();
-
     List<DocumentSnapshot> filteredPosts = [];
+    List<String> seenPostIds = [];
 
-    for (var postDoc in postsSnapshot.docs) {
-      final approvalsSnapshot =
-          await postDoc.reference.collection('approvals').get();
-      if (approvalsSnapshot.docs.isNotEmpty) {
-        bool allAccepted =
-            approvalsSnapshot.docs.every((doc) => doc['status'] == 'accepted');
-        if (allAccepted) {
-          filteredPosts.add(postDoc);
+    // Helper function to fetch and process posts for a given department
+    Future<void> fetchAndProcessPosts(String dept) async {
+      final postsSnapshot = await FirebaseFirestore.instance
+          .collection('Posts')
+          .where('department', isEqualTo: dept)
+          .get();
+
+      for (var postDoc in postsSnapshot.docs) {
+        final approvalsSnapshot =
+            await postDoc.reference.collection('approvals').get();
+
+        if (approvalsSnapshot.docs.isNotEmpty) {
+          bool allAccepted = approvalsSnapshot.docs
+              .every((doc) => doc['status'] == 'accepted');
+
+          if (allAccepted && !seenPostIds.contains(postDoc.id)) {
+            filteredPosts.add(postDoc);
+            seenPostIds.add(postDoc.id); // Mark this post as seen
+          }
         }
       }
     }
+
+    // Fetch and process posts for the specified department
+    await fetchAndProcessPosts(department);
+
+    // Fetch and process posts for the 'Non Academic' department
+    await fetchAndProcessPosts('Non Academic');
 
     yield filteredPosts;
   }
@@ -149,18 +162,19 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
               fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
-          // Additional icon on the left
           IconButton(
-            icon: const Icon(
-              Icons.notifications_rounded, // Replace with your desired icon
+            icon: Icon(
+              Icons.calendar_today,
               color: Colors.white,
             ),
             onPressed: () {
-              // Add your desired functionality here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CalendarPage()),
+              );
             },
-            tooltip: 'Settings',
+            tooltip: 'Calendar',
           ),
-          // Profile icon with CircleAvatar
           IconButton(
             icon: CircleAvatar(
               radius: 20, // Adjust size as needed

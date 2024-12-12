@@ -304,6 +304,34 @@ class _StudentHomePageState extends State<StudentHomePage> {
           }
         }
       }
+
+      // Fetch posts for the Non-Academic department
+      var nonAcadPostsSnapshot = await FirebaseFirestore.instance
+          .collection('Posts')
+          .where('department', isEqualTo: 'Non Academic')
+          .get();
+
+      // Process each post in the Non-Academic department
+      for (var post in nonAcadPostsSnapshot.docs) {
+        var postData = post.data();
+
+        // Fetch the approvals for the current post
+        final approvalsSnapshot =
+            await post.reference.collection('approvals').get();
+
+        if (approvalsSnapshot.docs.isNotEmpty) {
+          // Check if all approvals are accepted
+          bool allAccepted = approvalsSnapshot.docs
+              .every((doc) => doc['status'] == 'accepted');
+
+          // If all approvals are accepted and post isn't already in the list, add it
+          if (allAccepted && !seenPostIds.contains(post.id)) {
+            postData['creatorId'] = post.id; // Add creator ID
+            acceptedPosts.add(postData);
+            seenPostIds.add(post.id); // Mark this post as seen
+          }
+        }
+      }
     } catch (e) {
       print('Error fetching accepted posts: $e');
     }
