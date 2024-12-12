@@ -108,10 +108,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
       }
     }
 
-    // Fetch and process posts for the specified department
     await fetchAndProcessPosts(department);
-
-    // Fetch and process posts for the 'Non Academic' department
     await fetchAndProcessPosts('Non Academic');
 
     yield filteredPosts;
@@ -323,7 +320,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(clubName,
+                              Text(postData['clubName'],
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
                               Text(
