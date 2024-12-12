@@ -31,18 +31,27 @@ class _CalendarPageState extends State<CalendarPage> {
       final Map<DateTime, List<Map<String, dynamic>>> eventMap = {};
       for (var doc in eventDocs.docs) {
         final data = doc.data();
-        final eventDate = (data['date'] as Timestamp).toDate();
-        final normalizedEventDate =
-            DateTime(eventDate.year, eventDate.month, eventDate.day);
+        final startDate = (data['startDate'] as Timestamp).toDate();
+        final endDate = (data['endDate'] as Timestamp).toDate();
         final eventTitle = data['title'] as String;
         final eventDescription = data['description'] as String;
 
-        final eventList = eventMap[normalizedEventDate] ?? [];
-        eventList.add({
-          'title': eventTitle,
-          'description': eventDescription,
-        });
-        eventMap[normalizedEventDate] = eventList;
+        DateTime currentDay =
+            DateTime(startDate.year, startDate.month, startDate.day);
+        final endDay = DateTime(endDate.year, endDate.month, endDate.day);
+
+        while (currentDay.isBefore(endDay) ||
+            currentDay.isAtSameMomentAs(endDay)) {
+          final normalizedEventDate =
+              DateTime(currentDay.year, currentDay.month, currentDay.day);
+          final eventList = eventMap[normalizedEventDate] ?? [];
+          eventList.add({
+            'title': eventTitle,
+            'description': eventDescription,
+          });
+          eventMap[normalizedEventDate] = eventList;
+          currentDay = currentDay.add(Duration(days: 1));
+        }
       }
 
       setState(() {
@@ -55,6 +64,12 @@ class _CalendarPageState extends State<CalendarPage> {
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
     return _events[DateTime(day.year, day.month, day.day)] ?? [];
+  }
+
+  List<dynamic> _getEventsIndicator(DateTime day) {
+    return _events[DateTime(day.year, day.month, day.day)] != null
+        ? [true]
+        : [];
   }
 
   @override
@@ -74,7 +89,7 @@ class _CalendarPageState extends State<CalendarPage> {
             availableCalendarFormats: const {
               CalendarFormat.month: 'Month',
             },
-            eventLoader: _getEventsForDay,
+            eventLoader: _getEventsIndicator,
             startingDayOfWeek: StartingDayOfWeek.monday,
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
