@@ -6,7 +6,6 @@ class UserPostsScreen extends StatelessWidget {
   final String clubId;
 
   const UserPostsScreen({super.key, required this.clubId});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,28 +48,47 @@ class UserPostsScreen extends StatelessWidget {
               itemCount: posts.length,
               itemBuilder: (context, index) {
                 final post = posts[index].data() as Map<String, dynamic>;
+                final postId = posts[index].id;
 
                 return Card(
                   margin:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          post['title'] ?? 'Untitled',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              post['title'] ?? 'Untitled',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deletePost(context, postId),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           post['content'] ?? 'No content',
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54,
+                          ),
                         ),
                         const SizedBox(height: 8),
+                        // Timestamp
                         Text(
                           post['timestamp'] != null
                               ? DateFormat('MMM d, yyyy: h:mm a').format(
@@ -80,31 +98,72 @@ class UserPostsScreen extends StatelessWidget {
                           style: const TextStyle(color: Colors.grey),
                         ),
                         const SizedBox(height: 8),
+                        // Expiration Date
+                        if (post['expirationDate'] != null)
+                          Row(
+                            children: [
+                              const Icon(Icons.access_time,
+                                  color: Colors.orange, size: 18),
+                              const SizedBox(width: 4),
+                              Text(
+                                "Expire Date: ${DateFormat('MMM d, yyyy').format((post['expirationDate'] as Timestamp).toDate())}",
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 8),
                         // Display images if available
                         if (post['imageUrls'] != null &&
                             (post['imageUrls'] as List).isNotEmpty)
-                          SizedBox(
-                            height: 100, // Adjust height as needed
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: (post['imageUrls'] as List).length,
-                              itemBuilder: (context, imageIndex) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Image.network(
-                                    (post['imageUrls'] as List)[imageIndex],
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Images:',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 100, // Adjust height as needed
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: (post['imageUrls'] as List).length,
+                                  itemBuilder: (context, imageIndex) {
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          (post['imageUrls']
+                                              as List)[imageIndex],
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         const SizedBox(height: 8),
-                        // Checkboxes for approvals
+                        // Post approvals section
+                        const Text(
+                          'Post Approvals:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
                         FutureBuilder<QuerySnapshot>(
                           future: FirebaseFirestore.instance
                               .collection('Posts')
-                              .doc(posts[index].id)
+                              .doc(postId)
                               .collection('approvals')
                               .get(),
                           builder: (context, approvalSnapshot) {
@@ -123,10 +182,16 @@ class UserPostsScreen extends StatelessWidget {
                                 final adminId = approvalData['adminId'];
                                 final status = approvalData['status'];
 
-                                return ListTile(
-                                  minTileHeight: 2,
-                                  title: Text(adminId),
-                                  trailing: getApprovalStatusIcon(status),
+                                return Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: 2), // Reduced space between items
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 0,
+                                        horizontal: 8), // Reduced padding
+                                    title: Text(adminId),
+                                    trailing: getApprovalStatusIcon(status),
+                                  ),
                                 );
                               }).toList(),
                             );
@@ -142,6 +207,82 @@ class UserPostsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _deletePost(BuildContext context, String postId) async {
+    // Show a confirmation dialog
+    bool confirmDeletion = await showDialog<bool>(
+          context: context,
+          barrierDismissible:
+              false, // Prevents closing the dialog by tapping outside
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Confirm Deletion'),
+              content: const Text(
+                  'Are you sure you want to delete this post? This action cannot be undone.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(false), // Cancel the deletion
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(true), // Confirm the deletion
+                  child: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+
+    // If user confirms deletion, proceed with the deletion
+    if (confirmDeletion) {
+      try {
+        // First, delete any subcollections (like 'approvals')
+        await _deleteSubcollections(postId);
+
+        // Then delete the post document
+        await FirebaseFirestore.instance
+            .collection('Posts')
+            .doc(postId)
+            .delete();
+
+        // Ensure that the widget is still mounted before showing the snackbar
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Post deleted successfully.')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete post.')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteSubcollections(String postId) async {
+    try {
+      // Retrieve the subcollection 'approvals'
+      var approvalsSnapshot = await FirebaseFirestore.instance
+          .collection('Posts')
+          .doc(postId)
+          .collection('approvals')
+          .get();
+
+      // Delete each document in the 'approvals' subcollection
+      for (var doc in approvalsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // You can add more subcollections to delete if necessary
+    } catch (e) {
+      print('Failed to delete subcollections: $e');
+    }
   }
 
   Widget getApprovalStatusIcon(String status) {

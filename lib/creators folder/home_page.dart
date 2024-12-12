@@ -84,6 +84,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   Stream<List<DocumentSnapshot>> getDepartmentStream(String department) async* {
     List<DocumentSnapshot> filteredPosts = [];
     List<String> seenPostIds = [];
+    DateTime currentDate = DateTime.now(); // Get the current date
 
     // Helper function to fetch and process posts for a given department
     Future<void> fetchAndProcessPosts(String dept) async {
@@ -93,6 +94,13 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           .get();
 
       for (var postDoc in postsSnapshot.docs) {
+        final expirationDate = postDoc['expirationDate']
+            ?.toDate(); // Assuming expirationDate is a Firestore Timestamp
+        if (expirationDate != null &&
+            expirationDate.isAtSameMomentAs(currentDate)) {
+          continue; // Skip this post if the expirationDate is the same as the current date
+        }
+
         final approvalsSnapshot =
             await postDoc.reference.collection('approvals').get();
 

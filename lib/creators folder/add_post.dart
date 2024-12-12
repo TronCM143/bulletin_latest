@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Firestore import
 import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage import
 import 'package:image_picker/image_picker.dart'; // Image Picker import
-import 'dart:io'; // Import for File
+import 'dart:io';
+
+import 'package:intl/intl.dart'; // Import for File
 
 class AddPostDialog extends StatefulWidget {
   final String clubEmail; // Club email to identify the creator
@@ -27,6 +29,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
   final TextEditingController _contentController = TextEditingController();
   bool _isSaving = false;
   List<XFile>? _selectedImages = []; // List to store selected images
+  DateTime? _selectedExpirationDate;
 
   @override
   void dispose() {
@@ -63,28 +66,24 @@ class _AddPostDialogState extends State<AddPostDialog> {
     return imageUrls; // Return list of image URLs
   }
 
-  // Function to handle saving the post with clubName
+  // Func
   Future<void> _savePost(BuildContext context) async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
-    if (title.isNotEmpty && content.isNotEmpty) {
+    if (title.isNotEmpty &&
+        content.isNotEmpty &&
+        _selectedExpirationDate != null) {
       setState(() {
-        _isSaving = true; // Show loading state
+        _isSaving = true;
       });
 
-      final DateTime now = DateTime.now();
-      final String time = now.hour.toString().padLeft(2, '0') +
-          now.minute.toString().padLeft(2, '0'); // Format time as HHMM
-      final String month =
-          now.month.toString().padLeft(2, '0'); // Format month as MM
-      final String year = now.year.toString(); // Format year as YYYY
-      final String baseId =
-          '${time}_${month}_${year}_${widget.clubName}'; // Base ID format
-
       try {
-        // Initialize the approvals list
-        final List<String> adminIds = [
+        final DateTime now = DateTime.now();
+        final String baseId =
+            '${now.hour}${now.minute}_${now.month}_${now.year}_${widget.clubName}';
+
+        List<String> adminIds = [
           "ACAD_VP",
           "CAS_DEAN",
           "CBA_DEAN",
@@ -95,33 +94,21 @@ class _AddPostDialogState extends State<AddPostDialog> {
           "VP_ADMIN",
         ];
 
-        List<String> filteredAdminIds;
+        List<String> filteredAdminIds = adminIds;
 
         if (widget.clubDepartment == 'Non Academic') {
-          // If the department is 'Non Academic', all admins except the DEAN are needed
-          filteredAdminIds = adminIds.where((adminId) {
-            return !adminId.contains('_DEAN');
-          }).toList();
+          filteredAdminIds =
+              adminIds.where((adminId) => !adminId.contains('_DEAN')).toList();
         } else if (adminIds
             .any((adminId) => adminId.startsWith(widget.clubDepartment))) {
-          // If the department matches the DEAN's department
-          filteredAdminIds = [
-            '${widget.clubDepartment}_DEAN', // Add the DEAN of the specific department
-            'QUAPS',
-            'DSA' // Add QUAPS
-          ];
-        } else {
-          // Default: add all admins
-          filteredAdminIds = adminIds;
+          filteredAdminIds = ['${widget.clubDepartment}_DEAN', 'QUAPS', 'DSA'];
         }
 
-        // Upload images and get URLs
         List<String> imageUrls = await _uploadImages();
 
         CollectionReference postsCollection =
             FirebaseFirestore.instance.collection('Posts');
 
-        // Check for existing documents with the same baseId
         QuerySnapshot existingPosts = await postsCollection
             .where(FieldPath.documentId, isGreaterThanOrEqualTo: baseId)
             .get();
@@ -133,11 +120,9 @@ class _AddPostDialogState extends State<AddPostDialog> {
           }
         }
 
-        // Add increment to the UID if necessary
         String finalDocId =
             increment > 0 ? '${baseId}_${increment + 1}' : '${baseId}_1';
 
-        // Create the main post document
         DocumentReference postDocRef = postsCollection.doc(finalDocId);
         await postDocRef.set({
           'club_Id': widget.clubId,
@@ -147,23 +132,24 @@ class _AddPostDialogState extends State<AddPostDialog> {
           'content': content,
           'timestamp': Timestamp.now(),
           'clubName': widget.clubName,
-          'imageUrls': imageUrls, // Attach the list of image URLs
+          'imageUrls': imageUrls,
+          'expirationDate': Timestamp.fromDate(
+              _selectedExpirationDate!), // Save expiration date
         });
 
-        // Add approvals as a subcollection
         CollectionReference approvalsSubCollection =
             postDocRef.collection('approvals');
 
         for (var adminId in filteredAdminIds) {
           await approvalsSubCollection.doc(adminId).set({
             'adminId': adminId,
-            'status': 'pending', // Default status is pending
+            'status': 'pending',
           });
         }
 
         _titleController.clear();
         _contentController.clear();
-        _selectedImages = []; // Clear selected images
+        _selectedImages = [];
         Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -187,10 +173,25 @@ class _AddPostDialogState extends State<AddPostDialog> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in all fields.'),
+          content:
+              Text('Please fill in all fields and select an expiration date.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  Future<void> _selectExpirationDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedExpirationDate = picked;
+      });
     }
   }
 
@@ -209,83 +210,151 @@ class _AddPostDialogState extends State<AddPostDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Container(
         width: dialogWidth,
         height: dialogHeight,
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.grey.shade100],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Text(
+              'Add New Post',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 20.0),
             Expanded(
               child: SingleChildScrollView(
-                // Wrap in SingleChildScrollView for adjustable height
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Add Post',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(labelText: 'Title'),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextField(
-                      controller: _contentController,
-                      decoration: const InputDecoration(labelText: 'Content'),
-                      maxLines: 4,
-                    ),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: _pickImages,
-                      child: const Text('Attach Images'),
+                      'Title',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8.0),
+                    TextField(
+                      controller: _titleController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter the title',
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
+                    const Text(
+                      'Content',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8.0),
+                    TextField(
+                      controller: _contentController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Write the content here...',
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
+                    ElevatedButton.icon(
+                      onPressed: () => _selectExpirationDate(context),
+                      icon: const Icon(Icons.calendar_today),
+                      label: const Text('Select Expiration Date'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
+                    if (_selectedExpirationDate != null)
+                      Text(
+                        'Selected Expiration Date: ${DateFormat('MMM d, yyyy').format(_selectedExpirationDate!)}',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    const SizedBox(height: 20.0),
+                    ElevatedButton.icon(
+                      onPressed: _pickImages,
+                      icon: const Icon(Icons.image),
+                      label: const Text('Attach Images'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
                     // Display selected images with remove button
-                    _selectedImages!.isNotEmpty
-                        ? Wrap(
-                            spacing: 8.0,
-                            children: _selectedImages!.map((image) {
-                              return Stack(
-                                children: [
-                                  Container(
-                                    width: 150,
-                                    height: 150,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: FileImage(File(image.path)),
-                                        fit: BoxFit.cover,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                    if (_selectedImages!.isNotEmpty)
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 8.0,
+                        children: _selectedImages!.map((image) {
+                          return Stack(
+                            children: [
+                              Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  image: DecorationImage(
+                                    image: FileImage(File(image.path)),
+                                    fit: BoxFit.cover,
                                   ),
-                                  Positioned(
-                                    right: -5,
-                                    top: -5,
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.remove_circle,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () => _removeImage(image),
-                                    ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.remove_circle,
+                                    color: Colors.red,
                                   ),
-                                ],
-                              );
-                            }).toList(),
-                          )
-                        : const SizedBox(height: 16.0),
+                                  onPressed: () => _removeImage(image),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 8.0), // Add space before buttons
+            const Divider(height: 1, color: Colors.grey),
+            const SizedBox(height: 10.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -293,13 +362,22 @@ class _AddPostDialogState extends State<AddPostDialog> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Cancel'),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
                 ),
-                const SizedBox(width: 8.0),
+                const SizedBox(width: 10.0),
                 _isSaving
-                    ? const CircularProgressIndicator() // Show loading indicator while saving
+                    ? const CircularProgressIndicator()
                     : ElevatedButton(
                         onPressed: () => _savePost(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         child: const Text('Save'),
                       ),
               ],

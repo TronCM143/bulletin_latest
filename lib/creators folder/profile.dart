@@ -50,7 +50,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
             child: Container(
               padding: const EdgeInsets.all(20),
               constraints: BoxConstraints(
-                maxHeight: constraints.maxHeight * 0.8,
+                maxHeight: constraints.maxHeight * 0.72,
                 maxWidth: constraints.maxWidth * 0.9,
               ),
               child: Column(
@@ -151,8 +151,6 @@ class _ProfileDialogState extends State<ProfileDialog> {
                       backgroundColor: Colors.orangeAccent,
                     ),
                   ),
-
-                  const Spacer(),
 
                   // Logout Button
                   ElevatedButton.icon(
