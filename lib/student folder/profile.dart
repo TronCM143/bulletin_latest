@@ -107,7 +107,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                     'School ID: ${widget.schoolId}', // Display school ID
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.settings),
                     label: const Text('Settings'),
@@ -124,7 +124,6 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                       backgroundColor: Colors.blueAccent,
                     ),
                   ),
-                  const SizedBox(height: 5),
                   ElevatedButton.icon(
                     icon: const Icon(Icons.info_outline),
                     label: const Text('About Us'),

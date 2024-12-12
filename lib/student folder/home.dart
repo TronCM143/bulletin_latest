@@ -326,16 +326,24 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
           // If all approvals are accepted and post isn't already in the list, add it
           if (allAccepted && !seenPostIds.contains(post.id)) {
-            postData['creatorId'] = post.id; // Add creator ID
+            seenPostIds.add(post.id);
             acceptedPosts.add(postData);
-            seenPostIds.add(post.id); // Mark this post as seen
           }
         }
       }
-    } catch (e) {
-      print('Error fetching accepted posts: $e');
-    }
 
-    yield acceptedPosts;
+      // Sort acceptedPosts by timestamp in descending order (latest posts first)
+      acceptedPosts.sort((a, b) {
+        Timestamp timestampA = a['timestamp'];
+        Timestamp timestampB = b['timestamp'];
+        return timestampB.compareTo(timestampA);
+      });
+
+      // Yield the list of accepted posts
+      yield acceptedPosts;
+    } catch (e) {
+      print('Error fetching posts: $e');
+      yield acceptedPosts; // Return empty list in case of error
+    }
   }
 }

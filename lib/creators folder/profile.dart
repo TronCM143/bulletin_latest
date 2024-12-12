@@ -113,7 +113,7 @@ class _ProfileDialogState extends State<ProfileDialog> {
                     'Email: ${widget.email}',
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
 
                   // Settings Button
                   ElevatedButton.icon(
@@ -130,7 +130,6 @@ class _ProfileDialogState extends State<ProfileDialog> {
                       backgroundColor: Colors.blueAccent,
                     ),
                   ),
-                  const SizedBox(height: 5),
 
                   // About Us Button
                   ElevatedButton.icon(
