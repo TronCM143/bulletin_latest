@@ -21,21 +21,21 @@ class CreatorFunctions {
         if (creatorSnapshot.exists && creatorSnapshot.data() != null) {
           final creatorData = creatorSnapshot.data() as Map<String, dynamic>;
           onUpdate(
-            creatorData['clubName'] ?? 'N/A',
+            creatorData['creatorName'] ?? 'N/A',
             creatorData['department'] ?? 'N/A',
             creatorData['email'] ?? 'N/A',
             creatorData['clubId'] ?? 'N/A', // Return the clubId as well
           );
         } else {
           onUpdate('N/A', 'N/A', 'N/A',
-              clubId); // Include clubId even if data is not found
+              'N/A'); // Include clubId even if data is not found
         }
       },
       onError: (error) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to fetch creator info: $error')),
         );
-        onUpdate('Error', 'Error', 'Error', clubId);
+        onUpdate('Error', 'Error', 'Error', 'Error');
       },
     );
   }
