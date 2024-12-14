@@ -112,7 +112,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
       appBar: AppBar(
         backgroundColor: Colors.green,
         title: const Text(
-          'Home Page',
+          'Bulletin Board',
           style: TextStyle(
               fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),

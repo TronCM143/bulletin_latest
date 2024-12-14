@@ -162,7 +162,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 120, 219, 123),
         title: Text(
-          department,
+          'Bulletin Board',
           style: const TextStyle(
               fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),

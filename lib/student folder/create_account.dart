@@ -1,4 +1,5 @@
 import 'package:bulletin/login_page.dart';
+import 'package:bulletin/registration_list.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -16,7 +17,10 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+
+  String? _selectedCollege;
   String? _selectedDepartment;
+  String? _selectedClub;
 
   void _register() async {
     if (_formKey.currentState!.validate()) {
@@ -33,7 +37,6 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
             .get();
 
         if (doc.exists) {
-          // Show error message if email already exists
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -44,7 +47,6 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
             ),
           );
         } else {
-          // Save user data to Firestore
           await FirebaseFirestore.instance
               .collection('Users')
               .doc(schoolId) // Document for account details
@@ -53,11 +55,12 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
             'firstName': firstName,
             'lastName': lastName,
             'email': email,
+            'college': _selectedCollege,
             'department': _selectedDepartment,
+            'clubName': _selectedClub,
             'password': password, // Handle securely in production
           });
 
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Registration successful!')));
 
@@ -84,6 +87,11 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
     _emailController.clear();
     _passwordController.clear();
     _confirmPasswordController.clear();
+    setState(() {
+      _selectedCollege = null;
+      _selectedDepartment = null;
+      _selectedClub = null;
+    });
   }
 
   @override
@@ -104,6 +112,47 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
                     return 'Please enter your Student ID';
                   }
                   return null;
+                },
+              ), // Dropdown for selecting College
+              DropdownButtonFormField<String>(
+                value: _selectedCollege,
+                hint: Text('Select College'),
+                items: ['CAS', 'CED', 'CEAC', 'CBA'].map((college) {
+                  return DropdownMenuItem(
+                    value: college,
+                    child: Text(college),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCollege = value;
+                    _selectedDepartment = null;
+                    _selectedClub = null; // Reset selected department and club
+                  });
+                },
+              ),
+              RegistrationList(
+                selectedCollege: _selectedCollege,
+                selectedDepartment: _selectedDepartment,
+                selectedClub: _selectedClub,
+                onCollegeChanged: (college) {
+                  setState(() {
+                    _selectedCollege = college;
+                    _selectedDepartment =
+                        null; // Reset department on college change
+                    _selectedClub = null; // Reset club on college change
+                  });
+                },
+                onDepartmentChanged: (department) {
+                  setState(() {
+                    _selectedDepartment = department;
+                    _selectedClub = null; // Reset club on department change
+                  });
+                },
+                onClubChanged: (club) {
+                  setState(() {
+                    _selectedClub = club;
+                  });
                 },
               ),
               TextFormField(
@@ -158,35 +207,6 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
                 validator: (value) {
                   if (value != _passwordController.text.trim()) {
                     return 'Passwords do not match';
-                  }
-                  return null;
-                },
-              ),
-              DropdownButtonFormField<String>(
-                value: _selectedDepartment,
-                hint: Text('Select Department'),
-                items: [
-                  DropdownMenuItem(
-                      value: 'CED', child: Text('College of Education')),
-                  DropdownMenuItem(
-                      value: 'CEAC',
-                      child: Text(
-                          'College of Engineering Architechture and Com...')),
-                  DropdownMenuItem(
-                      value: 'CBA',
-                      child: Text('College of Business Administration')),
-                  DropdownMenuItem(
-                      value: 'CAS',
-                      child: Text('College of Arts and Sciences')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedDepartment = value;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a department';
                   }
                   return null;
                 },
