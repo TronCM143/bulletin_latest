@@ -28,7 +28,9 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
 
       // If the club type is 'Departmental Club', set clubName to the selected department
       // Assign clubName based on the club type
-      if (_clubType == 'Departmental Club') {
+      if (_clubType == 'Non-Departmental Club') {
+        clubName = '${_selectedClub ?? ''} SC';
+      } else if (_clubType == 'Departmental Club') {
         clubName = '${_selectedDepartment ?? ''} SC'; // Department + SC
       } else if (_clubType == 'College Student Council') {
         clubName = '${_selectedCollege ?? ''} SC';
