@@ -327,12 +327,12 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                     children: [
                       Row(
                         children: [
-                          ProfileAvatar(creatorId: postData['club_Id']),
+                          ProfileAvatar(creatorId: postData['creatorId']),
                           const SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(postData['clubName'],
+                              Text(postData['creatorName'],
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
                               Text(

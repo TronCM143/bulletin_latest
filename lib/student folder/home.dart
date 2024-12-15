@@ -194,13 +194,13 @@ class _StudentHomePageState extends State<StudentHomePage> {
                         children: [
                           Row(
                             children: [
-                              ProfileAvatar(creatorId: postData['club_Id']),
+                              ProfileAvatar(creatorId: postData['creatorId']),
                               const SizedBox(width: 8),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    postData['clubName'] ?? 'Unknown Club',
+                                    postData['creatorName'] ?? 'Unknown Club',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
