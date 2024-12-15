@@ -280,7 +280,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                 clubEmail: email,
                 clubName: clubName,
                 clubDepartment: department,
-                creatorAccountType: '',
+                creatorAccountType: accountType,
               ); // Pass the club email
             },
           );
