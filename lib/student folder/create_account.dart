@@ -57,7 +57,7 @@ class _StudentCreateAccountState extends State<StudentCreateAccount> {
             'email': email,
             'college': _selectedCollege,
             'department': _selectedDepartment,
-            'clubName': _selectedClub,
+            'club': _selectedClub,
             'password': password, // Handle securely in production
           });
 

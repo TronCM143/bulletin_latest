@@ -9,7 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 class CreatorFunctions {
   static void fetchCreatorInfo(
     String clubId, // Use clubId instead of clubEmail
-    Function(String, String, String, String, String, String) onUpdate,
+    Function(String, String, String, String, String, String, String) onUpdate,
     BuildContext context,
   ) {
     FirebaseFirestore.instance
@@ -21,15 +21,16 @@ class CreatorFunctions {
         if (creatorSnapshot.exists && creatorSnapshot.data() != null) {
           final creatorData = creatorSnapshot.data() as Map<String, dynamic>;
           onUpdate(
-              creatorData['creatorName'] ?? 'N/A',
-              creatorData['department'] ?? 'N/A',
-              creatorData['email'] ?? 'N/A',
-              creatorData['clubId'] ?? 'N/A',
-              creatorData['creatorAccountType'] ?? 'N/A',
-              creatorData['college'] ?? 'N/A' // Return the clubId as well
-              );
+            creatorData['creatorName'] ?? 'N/A',
+            creatorData['department'] ?? 'N/A',
+            creatorData['email'] ?? 'N/A',
+            creatorData['clubId'] ?? 'N/A',
+            creatorData['creatorAccountType'] ?? 'N/A',
+            creatorData['college'] ?? 'N/A',
+            creatorData['club'] ?? 'N/A',
+          );
         } else {
-          onUpdate('N/A', 'N/A', 'N/A', 'N/A', 'N/A',
+          onUpdate('N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A',
               'N/A'); // Include clubId even if data is not found
         }
       },
@@ -37,7 +38,7 @@ class CreatorFunctions {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to fetch creator info: $error')),
         );
-        onUpdate('Error', 'Error', 'Error', 'Error', 'Error', 'Error');
+        onUpdate('Error', 'Error', 'Error', 'Error', 'Error', 'Error', 'Error');
       },
     );
   }
@@ -45,7 +46,7 @@ class CreatorFunctions {
   static void showAddPostDialog(BuildContext context, String clubId) {
     // Fetch club details before showing the dialog
     fetchCreatorInfo(clubId,
-        (clubName, department, email, clubId, accType, col) {
+        (clubName, department, email, clubId, accType, col, club) {
       showDialog(
         context: context,
         builder: (context) => AddPostDialog(
@@ -55,6 +56,7 @@ class CreatorFunctions {
           clubDepartment: department,
           creatorAccountType: accType,
           collage: col,
+          club: club,
         ),
       );
     }, context);

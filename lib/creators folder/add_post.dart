@@ -11,6 +11,7 @@ class AddPostDialog extends StatefulWidget {
   final String clubId;
   final String creatorAccountType;
   final String collage;
+  final String club;
 
   const AddPostDialog({
     super.key,
@@ -20,6 +21,7 @@ class AddPostDialog extends StatefulWidget {
     required this.clubId,
     required this.creatorAccountType,
     required this.collage,
+    required this.club,
   });
 
   @override
@@ -68,7 +70,6 @@ class _AddPostDialogState extends State<AddPostDialog> {
     return imageUrls; // Return list of image URLs
   }
 
-  // Function to save the post to Firestore
   Future<void> _savePost(BuildContext context) async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
@@ -83,29 +84,67 @@ class _AddPostDialogState extends State<AddPostDialog> {
         final String baseId =
             '${now.hour}${now.minute}_${now.month}_${now.year}_${widget.clubName}';
 
-        List<String> adminIds = [
-          "ACAD_VP",
-          "CAS_DEAN",
-          "CBA_DEAN",
-          "CEAC_DEAN",
-          "CED_DEAN",
-          "DSA",
-          "QUAPS",
-          "VP_ADMIN",
-          "PSITS_MOD",
-          "BLIS_MOD",
-          "SSG_MOD",
-          "Kariktan_MOD",
-        ];
+        List<String> filteredAdminIds = [];
 
-        List<String> filteredAdminIds = adminIds;
-
-        if (widget.clubDepartment == 'Non Academic') {
-          filteredAdminIds =
-              adminIds.where((adminId) => !adminId.contains('_DEAN')).toList();
-        } else if (adminIds
-            .any((adminId) => adminId.startsWith(widget.clubDepartment))) {
-          filteredAdminIds = ['${widget.clubDepartment}_DEAN', 'QUAPS', 'DSA'];
+        if (widget.collage == 'Non Academic') {
+          if (widget.club == 'SSG') {
+            filteredAdminIds = [
+              'DSA',
+              'QUAPS',
+              'MOD_${widget.club}',
+              'VP_ADMIN',
+              'ACAD_VP'
+            ];
+          } //else if('para sa mga clubs na wala moderator)
+          else {
+            filteredAdminIds = ['DSA', 'QUAPS', 'MOD_${widget.club}'];
+          }
+        } else {
+          switch (_selectedPostType) {
+            case 'Collegiate':
+              if (widget.creatorAccountType == 'Departmental Club') {
+                filteredAdminIds = [
+                  '${widget.collage}_DEAN',
+                  'MOD_${widget.clubDepartment}',
+                  'QUAPS',
+                  'DSA'
+                ];
+              } else if (widget.creatorAccountType == 'Non-Departmental Club') {
+                filteredAdminIds = [
+                  '${widget.collage}_DEAN',
+                  'MOD_${widget.clubDepartment}',
+                  'MOD_${widget.club}',
+                  'QUAPS',
+                  'DSA'
+                ];
+              } else {
+                filteredAdminIds = ['${widget.collage}_DEAN', 'QUAPS', 'DSA'];
+              }
+              break;
+            case 'Departmental':
+              if (widget.creatorAccountType == 'Non-Departmental Club') {
+                filteredAdminIds = [
+                  '${widget.collage}_DEAN',
+                  'MOD_${widget.clubDepartment}',
+                  'MOD_${widget.club}',
+                  'DSA'
+                ];
+              } else {
+                filteredAdminIds = [
+                  'MOD_${widget.clubDepartment}',
+                  '${widget.collage}_DEAN',
+                  'DSA'
+                ];
+              }
+              break;
+            case 'Club':
+              filteredAdminIds = [
+                'MOD_${widget.club}',
+                '${widget.collage}_DEAN',
+                'DSA'
+              ];
+              break;
+          }
         }
 
         List<String> imageUrls = await _uploadImages();
@@ -134,7 +173,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
           'email': widget.clubEmail,
           'department': widget.clubDepartment,
           'postType':
-              _selectedPostType, //postType = collegiate, deaprtmental, club
+              _selectedPostType, // postType = collegiate, departmental, club
           'title': title,
           'content': content,
           'timestamp': Timestamp.now(),

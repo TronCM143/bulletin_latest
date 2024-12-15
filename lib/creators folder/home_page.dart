@@ -21,6 +21,7 @@ class CreatorHomePage extends StatefulWidget {
 class _CreatorHomePageState extends State<CreatorHomePage> {
   // State variables to store creator's information
   String clubName = 'Loading...';
+  String clubs = 'Loading...';
   String department = 'Loading...';
   String email = 'Loading...';
   String accountType = 'Loading...';
@@ -33,7 +34,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     super.initState();
     // Use the fetchCreatorInfo method from CreatorFunctions
     CreatorFunctions.fetchCreatorInfo(widget.clubId,
-        (name, dept, em, clubId, actType, col) {
+        (name, dept, em, clubId, actType, col, club) {
       setState(() {
         clubName = name;
         department = dept; // Store the department
@@ -41,6 +42,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         clubId = widget.clubId;
         accountType = actType;
         college = col;
+        clubs = club;
       });
       _loadProfileImage(); // Load the profile image after fetching info
     }, context);
@@ -284,6 +286,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                 clubDepartment: department,
                 creatorAccountType: accountType,
                 collage: college,
+                club: clubs,
               ); // Pass the club email
             },
           );

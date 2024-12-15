@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                               TextFormField(
                                 controller: _idController,
                                 decoration: InputDecoration(
-                                  hintText: 'School ID', // Placeholder text
+                                  hintText: 'User ID', // Placeholder text
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.8),
                                   border: OutlineInputBorder(
