@@ -23,7 +23,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   String clubName = 'Loading...';
   String department = 'Loading...';
   String email = 'Loading...';
-
+  String accountType = 'Loading...';
   String? profileImageURL; // Variable to hold the profile image URL
   int _selectedIndex = 0;
 
@@ -31,12 +31,14 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
   void initState() {
     super.initState();
     // Use the fetchCreatorInfo method from CreatorFunctions
-    CreatorFunctions.fetchCreatorInfo(widget.clubId, (name, dept, em, clubId) {
+    CreatorFunctions.fetchCreatorInfo(widget.clubId,
+        (name, dept, em, clubId, actType) {
       setState(() {
         clubName = name;
         department = dept; // Store the department
         email = em;
         clubId = widget.clubId;
+        accountType = actType;
       });
       _loadProfileImage(); // Load the profile image after fetching info
     }, context);
@@ -274,10 +276,12 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             context: context,
             builder: (BuildContext context) {
               return AddPostDialog(
-                  clubId: widget.clubId,
-                  clubEmail: email,
-                  clubName: clubName,
-                  clubDepartment: department); // Pass the club email
+                clubId: widget.clubId,
+                clubEmail: email,
+                clubName: clubName,
+                clubDepartment: department,
+                creatorAccountType: '',
+              ); // Pass the club email
             },
           );
         },

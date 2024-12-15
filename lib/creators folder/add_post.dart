@@ -4,13 +4,12 @@ import 'package:firebase_storage/firebase_storage.dart'; // Firebase Storage imp
 import 'package:image_picker/image_picker.dart'; // Image Picker import
 import 'dart:io';
 
-import 'package:intl/intl.dart'; // Import for File
-
 class AddPostDialog extends StatefulWidget {
   final String clubEmail; // Club email to identify the creator
   final String clubName;
   final String clubDepartment;
   final String clubId;
+  final String creatorAccountType;
 
   const AddPostDialog({
     super.key,
@@ -18,6 +17,7 @@ class AddPostDialog extends StatefulWidget {
     required this.clubName,
     required this.clubDepartment,
     required this.clubId,
+    required this.creatorAccountType,
   });
 
   @override
@@ -28,8 +28,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   bool _isSaving = false;
-  List<XFile>? _selectedImages = []; // List to store selected images
-  DateTime? _selectedExpirationDate;
+  List<XFile>? _selectedImages = [];
 
   @override
   void dispose() {
@@ -66,14 +65,12 @@ class _AddPostDialogState extends State<AddPostDialog> {
     return imageUrls; // Return list of image URLs
   }
 
-  // Func
+  // Function to save the post to Firestore
   Future<void> _savePost(BuildContext context) async {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
-    if (title.isNotEmpty &&
-        content.isNotEmpty &&
-        _selectedExpirationDate != null) {
+    if (title.isNotEmpty && content.isNotEmpty) {
       setState(() {
         _isSaving = true;
       });
@@ -125,16 +122,15 @@ class _AddPostDialogState extends State<AddPostDialog> {
 
         DocumentReference postDocRef = postsCollection.doc(finalDocId);
         await postDocRef.set({
-          'club_Id': widget.clubId,
-          'clubEmail': widget.clubEmail,
+          'creatorId': widget.clubId,
+          'creatorName': widget.clubName,
+          'email': widget.clubEmail,
           'department': widget.clubDepartment,
+          'creatorAccountType': widget.creatorAccountType,
           'title': title,
           'content': content,
           'timestamp': Timestamp.now(),
-          'clubName': widget.clubName,
-          'imageUrls': imageUrls,
-          'expirationDate': Timestamp.fromDate(
-              _selectedExpirationDate!), // Save expiration date
+          'imageUrls': imageUrls, // Save expiration date
         });
 
         CollectionReference approvalsSubCollection =
@@ -173,25 +169,10 @@ class _AddPostDialogState extends State<AddPostDialog> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Please fill in all fields and select an expiration date.'),
+          content: Text('Please fill in all fields.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
-    }
-  }
-
-  Future<void> _selectExpirationDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedExpirationDate = picked;
-      });
     }
   }
 
@@ -273,9 +254,9 @@ class _AddPostDialogState extends State<AddPostDialog> {
                     const SizedBox(height: 8.0),
                     TextField(
                       controller: _contentController,
-                      maxLines: 4,
+                      maxLines: 5,
                       decoration: InputDecoration(
-                        hintText: 'Write the content here...',
+                        hintText: 'Enter the content',
                         filled: true,
                         fillColor: Colors.grey.shade200,
                         border: OutlineInputBorder(
@@ -285,23 +266,6 @@ class _AddPostDialogState extends State<AddPostDialog> {
                       ),
                     ),
                     const SizedBox(height: 20.0),
-                    ElevatedButton.icon(
-                      onPressed: () => _selectExpirationDate(context),
-                      icon: const Icon(Icons.calendar_today),
-                      label: const Text('Select Expiration Date'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    if (_selectedExpirationDate != null)
-                      Text(
-                        'Selected Expiration Date: ${DateFormat('MMM d, yyyy').format(_selectedExpirationDate!)}',
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
                     const SizedBox(height: 20.0),
                     ElevatedButton.icon(
                       onPressed: _pickImages,
@@ -353,33 +317,22 @@ class _AddPostDialogState extends State<AddPostDialog> {
                 ),
               ),
             ),
-            const Divider(height: 1, color: Colors.grey),
-            const SizedBox(height: 10.0),
+            const SizedBox(height: 20.0),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton(
+                ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
+                  child: const Text('Cancel'),
                 ),
-                const SizedBox(width: 10.0),
-                _isSaving
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: () => _savePost(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Save'),
-                      ),
+                ElevatedButton(
+                  onPressed: _isSaving ? null : () => _savePost(context),
+                  child: _isSaving
+                      ? const CircularProgressIndicator()
+                      : const Text('Save Post'),
+                ),
               ],
             ),
           ],

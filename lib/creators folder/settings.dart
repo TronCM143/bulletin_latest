@@ -42,7 +42,7 @@ class _CreatorSettingsPageState extends State<CreatorSettingsPage> {
       if (creatorDoc.exists) {
         setState(() {
           currentEmail = creatorDoc['email'] ?? '';
-          currentName = creatorDoc['clubName'] ?? '';
+          currentName = creatorDoc['creatorName'] ?? '';
           _password = creatorDoc.data()?['password'] ?? '';
           _emailController.text = currentEmail;
           _nameController.text = currentName;
@@ -87,11 +87,12 @@ class _CreatorSettingsPageState extends State<CreatorSettingsPage> {
       // Update the email in all posts belonging to this clubId
       await FirebaseFirestore.instance
           .collection('Posts')
-          .where('club_Id', isEqualTo: widget.clubId) // Target posts by clubId
+          .where('creatorId',
+              isEqualTo: widget.clubId) // Target posts by clubId
           .get()
           .then((querySnapshot) {
         for (var doc in querySnapshot.docs) {
-          doc.reference.update({'clubEmail': newEmail});
+          doc.reference.update({'email': newEmail});
         }
       });
 
@@ -124,18 +125,19 @@ class _CreatorSettingsPageState extends State<CreatorSettingsPage> {
           .doc(widget
               .clubId) // Using the clubId to identify the correct document
           .update({
-        'clubName': newClubName, // Update the clubName field
+        'creatorName': newClubName, // Update the clubName field
       });
 
       // Step 2: Update the club name in all posts belonging to this clubId
       await FirebaseFirestore.instance
           .collection('Posts')
-          .where('club_Id', isEqualTo: widget.clubId) // Target posts by clubId
+          .where('creatorId',
+              isEqualTo: widget.clubId) // Target posts by clubId
           .get()
           .then((querySnapshot) {
         for (var doc in querySnapshot.docs) {
           doc.reference
-              .update({'clubName': newClubName}); // Update clubName in posts
+              .update({'creatorName': newClubName}); // Update clubName in posts
         }
       });
 
