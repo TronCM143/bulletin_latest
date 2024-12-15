@@ -29,6 +29,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
   final TextEditingController _contentController = TextEditingController();
   bool _isSaving = false;
   List<XFile>? _selectedImages = [];
+  String? _selectedPostType;
 
   @override
   void dispose() {
@@ -70,7 +71,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
-    if (title.isNotEmpty && content.isNotEmpty) {
+    if (title.isNotEmpty && content.isNotEmpty && _selectedPostType != null) {
       setState(() {
         _isSaving = true;
       });
@@ -126,7 +127,8 @@ class _AddPostDialogState extends State<AddPostDialog> {
           'creatorName': widget.clubName,
           'email': widget.clubEmail,
           'department': widget.clubDepartment,
-          'creatorAccountType': widget.creatorAccountType,
+          'postType':
+              _selectedPostType, //postType = collegiate, deaprtmental, club
           'title': title,
           'content': content,
           'timestamp': Timestamp.now(),
@@ -182,6 +184,46 @@ class _AddPostDialogState extends State<AddPostDialog> {
     setState(() {
       _selectedImages!.remove(image); // Remove the selected image from the list
     });
+  }
+
+  Widget buildPostTypeDropdown() {
+    List<String> postTypes;
+
+    // Determine the post types based on the creatorAccountType
+    if (widget.creatorAccountType == 'College Student Council') {
+      postTypes = ['Collegiate'];
+      _selectedPostType = 'Collegiate'; // Automatically set to Collegiate
+    } else if (widget.creatorAccountType == 'Departmental Club') {
+      postTypes = ['Collegiate', 'Departmental'];
+    } else {
+      postTypes = ['Collegiate', 'Departmental', 'Club'];
+    }
+
+    return DropdownButtonFormField<String>(
+      value: _selectedPostType,
+      hint: const Text('Select Type'),
+      items: postTypes.map((postType) {
+        return DropdownMenuItem(
+          value: postType,
+          child: Text(postType),
+        );
+      }).toList(),
+      onChanged: widget.creatorAccountType == 'College Student Council'
+          ? null
+          : (value) {
+              setState(() {
+                _selectedPostType = value;
+              });
+            },
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
   }
 
   @override
@@ -267,6 +309,13 @@ class _AddPostDialogState extends State<AddPostDialog> {
                       ),
                     ),
                     const SizedBox(height: 20.0),
+                    const Text(
+                      'Type of Post',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    buildPostTypeDropdown(),
+
+                    /// type of post
                     const SizedBox(height: 20.0),
                     ElevatedButton.icon(
                       onPressed: _pickImages,

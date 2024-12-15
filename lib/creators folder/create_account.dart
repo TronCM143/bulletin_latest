@@ -31,10 +31,12 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
       if (_clubType == 'Non-Departmental Club') {
         clubName = '${_selectedClub ?? ''} SC';
       } else if (_clubType == 'Departmental Club') {
-        clubName = '${_selectedDepartment ?? ''} SC'; // Department + SC
+        clubName = '${_selectedDepartment ?? ''} SC';
+        _selectedClub = _selectedDepartment ?? ''; // Department + SC
       } else if (_clubType == 'College Student Council') {
         clubName = '${_selectedCollege ?? ''} SC';
         _selectedDepartment = _selectedCollege ?? '';
+        _selectedClub = _selectedCollege ?? '';
       } else {
         clubName = _selectedClub ?? '';
       }
@@ -109,6 +111,7 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
                 'college': _selectedCollege,
                 'department': _selectedDepartment,
                 'creatorName': clubName,
+                'club': _selectedClub,
                 'creatorAccountType':
                     _clubType, // Set the club name based on the club type
                 'password': password,
