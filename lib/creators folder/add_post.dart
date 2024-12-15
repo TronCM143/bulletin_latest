@@ -102,18 +102,11 @@ class _AddPostDialogState extends State<AddPostDialog> {
         } else {
           switch (_selectedPostType) {
             case 'Collegiate':
-              if (widget.creatorAccountType == 'Departmental Club') {
+              if (widget.creatorAccountType == 'Departmental Club' ||
+                  widget.creatorAccountType == 'Non-Departmental Club') {
                 filteredAdminIds = [
                   '${widget.collage}_DEAN',
                   'MOD_${widget.clubDepartment}',
-                  'QUAPS',
-                  'DSA'
-                ];
-              } else if (widget.creatorAccountType == 'Non-Departmental Club') {
-                filteredAdminIds = [
-                  '${widget.collage}_DEAN',
-                  'MOD_${widget.clubDepartment}',
-                  'MOD_${widget.club}',
                   'QUAPS',
                   'DSA'
                 ];
@@ -122,20 +115,11 @@ class _AddPostDialogState extends State<AddPostDialog> {
               }
               break;
             case 'Departmental':
-              if (widget.creatorAccountType == 'Non-Departmental Club') {
-                filteredAdminIds = [
-                  '${widget.collage}_DEAN',
-                  'MOD_${widget.clubDepartment}',
-                  'MOD_${widget.club}',
-                  'DSA'
-                ];
-              } else {
-                filteredAdminIds = [
-                  'MOD_${widget.clubDepartment}',
-                  '${widget.collage}_DEAN',
-                  'DSA'
-                ];
-              }
+              filteredAdminIds = [
+                'MOD_${widget.clubDepartment}',
+                '${widget.collage}_DEAN',
+                'DSA'
+              ];
               break;
             case 'Club':
               filteredAdminIds = [

@@ -184,7 +184,7 @@ class UserPostsScreen extends StatelessWidget {
 
                                 return Padding(
                                   padding: const EdgeInsets.only(
-                                      bottom: 2), // Reduced space between items
+                                      bottom: 0), // Reduced space between items
                                   child: ListTile(
                                     contentPadding: EdgeInsets.symmetric(
                                         vertical: 0,
