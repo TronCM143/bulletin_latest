@@ -50,7 +50,7 @@ class _RegistrationListState extends State<RegistrationList> {
       'Medical chuchu': ['Sons', 'Phismets'],
     },
     'Non Academic': {
-      'DSA': ['SSG', 'Kariktan'],
+      'DSA': ['SSG', 'Kariktan', 'Symphonic Band', 'Kutitap Theatre'],
     },
   };
 
