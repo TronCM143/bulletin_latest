@@ -10,6 +10,7 @@ class AddPostDialog extends StatefulWidget {
   final String clubDepartment;
   final String clubId;
   final String creatorAccountType;
+  final String collage;
 
   const AddPostDialog({
     super.key,
@@ -18,6 +19,7 @@ class AddPostDialog extends StatefulWidget {
     required this.clubDepartment,
     required this.clubId,
     required this.creatorAccountType,
+    required this.collage,
   });
 
   @override
@@ -90,6 +92,10 @@ class _AddPostDialogState extends State<AddPostDialog> {
           "DSA",
           "QUAPS",
           "VP_ADMIN",
+          "PSITS_MOD",
+          "BLIS_MOD",
+          "SSG_MOD",
+          "Kariktan_MOD",
         ];
 
         List<String> filteredAdminIds = adminIds;
@@ -189,8 +195,11 @@ class _AddPostDialogState extends State<AddPostDialog> {
   Widget buildPostTypeDropdown() {
     List<String> postTypes;
 
-    // Determine the post types based on the creatorAccountType
-    if (widget.creatorAccountType == 'College Student Council') {
+    // Determine the post types based on the creator's college and account type
+    if (widget.collage == 'Non Academic') {
+      postTypes = ['University'];
+      _selectedPostType = 'University'; // Set the selected type to 'University'
+    } else if (widget.creatorAccountType == 'College Student Council') {
       postTypes = ['Collegiate'];
       _selectedPostType = 'Collegiate'; // Automatically set to Collegiate
     } else if (widget.creatorAccountType == 'Departmental Club') {
@@ -208,8 +217,9 @@ class _AddPostDialogState extends State<AddPostDialog> {
           child: Text(postType),
         );
       }).toList(),
-      onChanged: widget.creatorAccountType == 'College Student Council'
-          ? null
+      onChanged: widget.creatorAccountType == 'College Student Council' ||
+              widget.collage == 'Non Academic'
+          ? null // Disable dropdown if the college is 'Non Academic' or the account type is 'College Student Council'
           : (value) {
               setState(() {
                 _selectedPostType = value;

@@ -39,7 +39,7 @@ class _RegistrationListState extends State<RegistrationList> {
     },
     'CEAC': {
       'CSD': ['PSITS', 'BLIS'],
-      'SEAS': ['CE', 'ARCHI', 'EE', 'CompENG', 'ECE'],
+      'SEAS': ['PICE', 'ARCHI', 'EE', 'CompENG', 'ECE'],
     },
     'CBA': {
       'Department of Business 1': ['Club E1', 'Club E2'],
@@ -50,7 +50,7 @@ class _RegistrationListState extends State<RegistrationList> {
       'Medical chuchu': ['Sons', 'Phismets'],
     },
     'Non Academic': {
-      'DSA': ['Club I1', 'Club I2'],
+      'DSA': ['SSG', 'Kariktan'],
     },
   };
 
