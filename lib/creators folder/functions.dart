@@ -63,12 +63,13 @@ class CreatorFunctions {
   }
 
   static void showProfileDialog(BuildContext context, String clubName,
-      String department, String email, String clubId) {
+      String college, String department, String email, String clubId) {
     showDialog(
       context: context,
       builder: (context) {
         return ProfileDialog(
           clubName: clubName,
+          college: college,
           department: department,
           email: email,
           clubId: clubId,

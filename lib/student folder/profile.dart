@@ -9,17 +9,20 @@ class StudentProfileDialog extends StatefulWidget {
   final String firstName;
   final String lastName;
   final String email;
-  final String department; // Add department here
+  final String college;
+  final String department;
+  final String club; // Add department here
   final String schoolId; // Add schoolId here
 
-  const StudentProfileDialog({
-    super.key,
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.department, // Add department to constructor
-    required this.schoolId, // Add schoolId to constructor
-  });
+  const StudentProfileDialog(
+      {super.key,
+      required this.firstName,
+      required this.lastName,
+      required this.email,
+      required this.department,
+      required this.schoolId,
+      required this.college,
+      required this.club});
 
   @override
   _StudentProfileDialogState createState() => _StudentProfileDialogState();
@@ -92,17 +95,27 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                     'Name: ${widget.firstName} ${widget.lastName}',
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
                   Text(
                     'Email: ${widget.email}',
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
+                  Text(
+                    'College: ${widget.college}', // Display department
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 5),
                   Text(
                     'Department: ${widget.department}', // Display department
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Club: ${widget.club}', // Display department
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 5),
                   Text(
                     'School ID: ${widget.schoolId}', // Display school ID
                     style: const TextStyle(fontSize: 16),

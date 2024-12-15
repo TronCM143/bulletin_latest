@@ -9,7 +9,8 @@ class ProfileDialog extends StatefulWidget {
   final String clubName; // Club name of the creator
   final String department; // Department of the creator
   final String email;
-  final String clubId; // Email of the creator
+  final String clubId;
+  final String college; // Email of the creator
 
   const ProfileDialog({
     super.key,
@@ -17,6 +18,7 @@ class ProfileDialog extends StatefulWidget {
     required this.department,
     required this.email,
     required this.clubId,
+    required this.college,
   });
 
   @override
@@ -100,7 +102,11 @@ class _ProfileDialogState extends State<ProfileDialog> {
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 10),
-
+                  Text(
+                    'College: ${widget.college}',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
                   // Department
                   Text(
                     'Department: ${widget.department}',

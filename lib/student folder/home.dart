@@ -22,6 +22,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
   String firstName = 'Loading...';
   String lastName = 'Loading...';
   String department = 'Loading...';
+  String club = 'Loading...';
+  String college = 'Loading...';
   String schoolId = 'Loading...';
   String email = 'Loading...';
   String? profileImageURL; // Variable to hold the profile image URL
@@ -31,13 +33,15 @@ class _StudentHomePageState extends State<StudentHomePage> {
     super.initState();
     // Fetch student information from Firestore
     StudentFunctions.fetchStudentInfo(widget.schoolId,
-        (fName, lName, ema, dept, id) {
+        (fName, lName, ema, dept, id, clu, col) {
       setState(() {
         firstName = fName;
         lastName = lName;
         email = ema;
         department = dept;
         schoolId = id;
+        club = clu;
+        college = col;
       });
       _loadProfileImage();
     }, context);
@@ -142,8 +146,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
                   : null,
             ),
             onPressed: () {
-              StudentFunctions.showProfileDialog(
-                  context, firstName, lastName, email, department, schoolId);
+              StudentFunctions.showProfileDialog(context, firstName, lastName,
+                  email, college, department, club, schoolId);
             },
             tooltip: 'Profile',
           ),
@@ -163,7 +167,7 @@ class _StudentHomePageState extends State<StudentHomePage> {
         child: RefreshIndicator(
           onRefresh: _refreshPosts,
           child: StreamBuilder<List<Map<String, dynamic>>>(
-            stream: getAcceptedPostsStream(department),
+            stream: getAcceptedPostsStream(college, department, club),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -273,64 +277,41 @@ class _StudentHomePageState extends State<StudentHomePage> {
   }
 
   Stream<List<Map<String, dynamic>>> getAcceptedPostsStream(
-      String department) async* {
+      String college, String department, String club) async* {
     List<Map<String, dynamic>> acceptedPosts = [];
     Set<String> seenPostIds = {}; // Set to track seen post IDs
 
+    // Helper function to fetch and process posts based on conditions
+    Future<void> fetchAndProcessPosts(
+        String postType, String field, String value) async {
+      final postsSnapshot = await FirebaseFirestore.instance
+          .collection('Posts')
+          .where('postType', isEqualTo: postType)
+          .where(field, isEqualTo: value)
+          .get();
+
+      for (var postDoc in postsSnapshot.docs) {
+        final approvalsSnapshot =
+            await postDoc.reference.collection('approvals').get();
+
+        if (approvalsSnapshot.docs.isNotEmpty) {
+          bool allAccepted = approvalsSnapshot.docs
+              .every((doc) => doc['status'] == 'accepted');
+
+          if (allAccepted && !seenPostIds.contains(postDoc.id)) {
+            seenPostIds.add(postDoc.id);
+            acceptedPosts.add(postDoc.data());
+          }
+        }
+      }
+    }
+
     try {
-      // Fetch posts for the student's department
-      var postsSnapshot = await FirebaseFirestore.instance
-          .collection('Posts')
-          .where('department', isEqualTo: department)
-          .get();
-
-      // Process each post in the department
-      for (var post in postsSnapshot.docs) {
-        var postData = post.data();
-
-        // Fetch the approvals for the current post
-        final approvalsSnapshot =
-            await post.reference.collection('approvals').get();
-
-        if (approvalsSnapshot.docs.isNotEmpty) {
-          // Check if all approvals are accepted
-          bool allAccepted = approvalsSnapshot.docs
-              .every((doc) => doc['status'] == 'accepted');
-
-          // If all approvals are accepted and post isn't already in the list, add it
-          if (allAccepted && !seenPostIds.contains(post.id)) {
-            seenPostIds.add(post.id);
-            acceptedPosts.add(postData);
-          }
-        }
-      }
-
-      // Fetch posts for the Non-Academic department
-      var nonAcadPostsSnapshot = await FirebaseFirestore.instance
-          .collection('Posts')
-          .where('department', isEqualTo: 'Non Academic')
-          .get();
-
-      // Process each post in the Non-Academic department
-      for (var post in nonAcadPostsSnapshot.docs) {
-        var postData = post.data();
-
-        // Fetch the approvals for the current post
-        final approvalsSnapshot =
-            await post.reference.collection('approvals').get();
-
-        if (approvalsSnapshot.docs.isNotEmpty) {
-          // Check if all approvals are accepted
-          bool allAccepted = approvalsSnapshot.docs
-              .every((doc) => doc['status'] == 'accepted');
-
-          // If all approvals are accepted and post isn't already in the list, add it
-          if (allAccepted && !seenPostIds.contains(post.id)) {
-            seenPostIds.add(post.id);
-            acceptedPosts.add(postData);
-          }
-        }
-      }
+      // Fetch posts based on the specified conditions
+      await fetchAndProcessPosts('Collegiate', 'college', college);
+      await fetchAndProcessPosts('Departmental', 'department', department);
+      await fetchAndProcessPosts('Club', 'club', club);
+      await fetchAndProcessPosts('University', 'college', 'Non Academic');
 
       // Sort acceptedPosts by timestamp in descending order (latest posts first)
       acceptedPosts.sort((a, b) {

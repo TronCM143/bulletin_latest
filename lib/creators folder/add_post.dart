@@ -156,6 +156,8 @@ class _AddPostDialogState extends State<AddPostDialog> {
           'creatorName': widget.clubName,
           'email': widget.clubEmail,
           'department': widget.clubDepartment,
+          'club': widget.club,
+          'college': widget.collage,
           'postType':
               _selectedPostType, // postType = collegiate, departmental, club
           'title': title,

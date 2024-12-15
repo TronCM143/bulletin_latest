@@ -87,26 +87,21 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     });
   }
 
-  Stream<List<DocumentSnapshot>> getDepartmentStream(String department) async* {
+  Stream<List<DocumentSnapshot>> getDepartmentStream(
+      String college, String department, String club) async* {
     List<DocumentSnapshot> filteredPosts = [];
     List<String> seenPostIds = [];
-    DateTime currentDate = DateTime.now(); // Get the current date
 
-    // Helper function to fetch and process posts for a given department
-    Future<void> fetchAndProcessPosts(String dept) async {
+    // Helper function to fetch and process posts based on conditions
+    Future<void> fetchAndProcessPosts(
+        String postType, String field, String value) async {
       final postsSnapshot = await FirebaseFirestore.instance
           .collection('Posts')
-          .where('department', isEqualTo: dept)
+          .where('postType', isEqualTo: postType)
+          .where(field, isEqualTo: value)
           .get();
 
       for (var postDoc in postsSnapshot.docs) {
-        final expirationDate = postDoc['expirationDate']
-            ?.toDate(); // Assuming expirationDate is a Firestore Timestamp
-        if (expirationDate != null &&
-            expirationDate.isAtSameMomentAs(currentDate)) {
-          continue; // Skip this post if the expirationDate is the same as the current date
-        }
-
         final approvalsSnapshot =
             await postDoc.reference.collection('approvals').get();
 
@@ -122,8 +117,11 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
       }
     }
 
-    await fetchAndProcessPosts(department);
-    await fetchAndProcessPosts('Non Academic');
+    // Fetch posts based on the specified conditions
+    await fetchAndProcessPosts('Collegiate', 'college', college);
+    await fetchAndProcessPosts('Departmental', 'department', department);
+    await fetchAndProcessPosts('Club', 'club', club);
+    await fetchAndProcessPosts('University', 'college', 'Non Academic');
 
     yield filteredPosts;
   }
@@ -205,7 +203,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
             onPressed: () {
               // Use the showProfileDialog method from CreatorFunctions
               CreatorFunctions.showProfileDialog(
-                  context, clubName, department, email, widget.clubId);
+                  context, clubName, college, department, email, widget.clubId);
             },
             tooltip: 'Profile',
           ),
@@ -303,7 +301,7 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     return RefreshIndicator(
       onRefresh: _refreshPosts, // Call the refresh method
       child: StreamBuilder<List<DocumentSnapshot>>(
-        stream: getDepartmentStream(department),
+        stream: getDepartmentStream(college, department, clubs),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

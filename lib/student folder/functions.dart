@@ -8,7 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 class StudentFunctions {
   static void fetchStudentInfo(
       String schoolId,
-      Function(String, String, String, String, String) onUpdate,
+      Function(String, String, String, String, String, String, String) onUpdate,
       BuildContext context) {
     // Updated signature
     FirebaseFirestore.instance
@@ -19,22 +19,22 @@ class StudentFunctions {
       if (studentSnapshot.exists && studentSnapshot.data() != null) {
         final studentData = studentSnapshot.data() as Map<String, dynamic>;
         onUpdate(
-          studentData['firstName'] ?? 'N/A',
-          studentData['lastName'] ?? 'N/A',
-          studentData['email'] ?? 'N/A',
-          studentData['department'] ?? 'N/A', // Fetch department
-          studentData['schoolId'] ?? 'N/A', // Fetch schoolId
-        );
+            studentData['firstName'] ?? 'N/A',
+            studentData['lastName'] ?? 'N/A',
+            studentData['email'] ?? 'N/A',
+            studentData['department'] ?? 'N/A', // Fetch department
+            studentData['schoolId'] ?? 'N/A',
+            studentData['club'] ?? 'N/A',
+            studentData['college'] ?? 'N/A' // Fetch schoolId
+            );
       } else {
-        onUpdate(
-            'N/A', 'N/A', 'N/A', 'N/A', 'N/A'); // Update with default values
+        onUpdate('N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A');
       }
     }, onError: (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to fetch student info: $error')),
       );
-      onUpdate('Error', 'Error', 'Error', 'Error',
-          'Error'); // Update with error values
+      onUpdate('Error', 'Error', 'Error', 'Error', 'Error', 'Error', 'Error');
     });
   }
 
@@ -43,8 +43,10 @@ class StudentFunctions {
     String firstName,
     String lastName,
     String email,
-    String department, // Add department parameter
-    String schoolId, // Add schoolId parameter
+    String college,
+    String department,
+    String club,
+    String schoolId,
   ) async {
     showDialog(
       context: context,
@@ -53,8 +55,10 @@ class StudentFunctions {
           firstName: firstName,
           lastName: lastName,
           email: email,
-          department: department, // Pass department
-          schoolId: schoolId, // Pass schoolId
+          department: department,
+          schoolId: schoolId,
+          club: club,
+          college: college,
         );
       },
     );
