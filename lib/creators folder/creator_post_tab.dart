@@ -24,7 +24,7 @@ class UserPostsScreen extends StatelessWidget {
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('Posts')
-              .where('club_Id', isEqualTo: clubId)
+              .where('creatorId', isEqualTo: clubId)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
