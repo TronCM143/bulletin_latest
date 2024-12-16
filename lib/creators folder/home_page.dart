@@ -92,6 +92,9 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
     List<DocumentSnapshot> filteredPosts = [];
     List<String> seenPostIds = [];
 
+    // Get the current date
+    DateTime currentDate = DateTime.now();
+
     // Helper function to fetch and process posts based on conditions
     Future<void> fetchAndProcessPosts(
         String postType, String field, String value) async {
@@ -102,6 +105,16 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
           .get();
 
       for (var postDoc in postsSnapshot.docs) {
+        // Get the expiration date from the post
+        DateTime expirationDate = (postDoc['expirationDate'] as Timestamp)
+            .toDate(); // Convert Firebase Timestamp to DateTime
+
+        // Check if the post has expired (skip the post if expired)
+        if (expirationDate.isBefore(currentDate)) {
+          continue; // Skip expired posts
+        }
+
+        // Proceed to check the approvals if the post has not expired
         final approvalsSnapshot =
             await postDoc.reference.collection('approvals').get();
 

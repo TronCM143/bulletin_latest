@@ -163,8 +163,9 @@ class _AddPostDialogState extends State<AddPostDialog> {
           'title': title,
           'content': content,
           'timestamp': Timestamp.now(),
-          'imageUrls': imageUrls, // Save expiration date
-          'expirationDate': null
+          'imageUrls': imageUrls,
+          'expirationDate':
+              Timestamp.now() // Save expiration date as date today
         });
 
         CollectionReference approvalsSubCollection =

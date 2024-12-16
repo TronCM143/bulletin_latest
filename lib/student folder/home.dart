@@ -291,6 +291,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
           .get();
 
       for (var postDoc in postsSnapshot.docs) {
+        // Get the expiration date from the post
+        DateTime expirationDate = (postDoc['expirationDate'] as Timestamp)
+            .toDate(); // Convert Firebase Timestamp to DateTime
+        DateTime currentDate = DateTime.now();
+
+        // Skip the post if it is expired
+        if (expirationDate.isBefore(currentDate)) {
+          continue; // Skip expired posts
+        }
+
         final approvalsSnapshot =
             await postDoc.reference.collection('approvals').get();
 
