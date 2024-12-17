@@ -47,7 +47,7 @@ class _RegistrationListState extends State<RegistrationList> {
     },
     'CAS': {
       'Natural Science': ['science', 'math'],
-      'Medical chuchu': ['Sons', 'Phismets'],
+      'Medical Courses': ['Sons', 'Phismets'],
     },
     'Non Academic': {
       'DSA': ['SSG', 'Kariktan', 'Symphonic Band', 'Kutitap Theatre'],
