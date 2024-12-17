@@ -90,14 +90,13 @@ class _AddPostDialogState extends State<AddPostDialog> {
           if (widget.club == 'SSG') {
             filteredAdminIds = [
               'DSA',
-              'QUAPS',
+              'QAPS',
               'MOD_${widget.club}',
               'VP_ADMIN',
               'ACAD_VP'
             ];
-          } //else if('para sa mga clubs na wala moderator)
-          else {
-            filteredAdminIds = ['DSA', 'QUAPS', 'MOD_${widget.club}'];
+          } else {
+            filteredAdminIds = ['DSA', 'QAPS', 'MOD_${widget.club}'];
           }
         } else {
           switch (_selectedPostType) {
@@ -107,17 +106,18 @@ class _AddPostDialogState extends State<AddPostDialog> {
                 filteredAdminIds = [
                   '${widget.collage}_DEAN',
                   'MOD_${widget.clubDepartment}',
-                  'QUAPS',
+                  'QAPS',
                   'DSA'
                 ];
               } else {
-                filteredAdminIds = ['${widget.collage}_DEAN', 'QUAPS', 'DSA'];
+                filteredAdminIds = ['${widget.collage}_DEAN', 'QAPS', 'DSA'];
               }
               break;
             case 'Departmental':
               filteredAdminIds = [
                 'MOD_${widget.clubDepartment}',
                 '${widget.collage}_DEAN',
+                'QAPS',
                 'DSA'
               ];
               break;
@@ -125,6 +125,7 @@ class _AddPostDialogState extends State<AddPostDialog> {
               filteredAdminIds = [
                 'MOD_${widget.club}',
                 '${widget.collage}_DEAN',
+                'QAPS',
                 'DSA'
               ];
               break;

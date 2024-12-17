@@ -1,4 +1,3 @@
-import 'package:bulletin/calendar_of_events.dart';
 import 'package:bulletin/creators%20folder/creator_post_tab.dart';
 import 'package:bulletin/profile_avatar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -184,19 +183,6 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
               fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.calendar_today,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CalendarPage()),
-              );
-            },
-            tooltip: 'Calendar',
-          ),
           IconButton(
             icon: CircleAvatar(
               radius: 20, // Adjust size as needed

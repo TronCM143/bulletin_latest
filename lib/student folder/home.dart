@@ -1,4 +1,3 @@
-import 'package:bulletin/calendar_of_events.dart';
 import 'package:bulletin/student%20folder/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -121,19 +120,6 @@ class _StudentHomePageState extends State<StudentHomePage> {
               fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.calendar_today,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CalendarPage()),
-              );
-            },
-            tooltip: 'Calendar',
-          ),
           IconButton(
             icon: CircleAvatar(
               radius: 20,

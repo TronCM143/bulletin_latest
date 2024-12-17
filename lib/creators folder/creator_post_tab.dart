@@ -79,7 +79,6 @@ class UserPostsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
                         Text(
                           post['content'] ?? 'No content',
                           style: const TextStyle(
