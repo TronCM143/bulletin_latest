@@ -26,13 +26,12 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
       final password = _passwordController.text.trim();
       String? clubName;
 
-      // If the club type is 'Departmental Club', set clubName to the selected department
-      // Assign clubName based on the club type
+      // Determine clubName based on the club type
       if (_clubType == 'Non-Departmental Club') {
         clubName = '${_selectedClub ?? ''} SC';
       } else if (_clubType == 'Departmental Club') {
         clubName = '${_selectedDepartment ?? ''} SC';
-        _selectedClub = _selectedDepartment ?? ''; // Department + SC
+        _selectedClub = _selectedDepartment ?? '';
       } else if (_clubType == 'College Student Council') {
         clubName = '${_selectedCollege ?? ''} SC';
         _selectedDepartment = _selectedCollege ?? '';
@@ -45,7 +44,7 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
         // Check if the email already exists in the 'Users' collection
         final emailDoc = await FirebaseFirestore.instance
             .collection('Users')
-            .doc(clubEmail) // Document for account details
+            .doc(clubEmail)
             .get();
 
         if (emailDoc.exists) {
@@ -79,44 +78,39 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
               ),
             );
           } else {
-            // Get the counter document
-            DocumentReference counterRef = FirebaseFirestore.instance
-                .collection('ID_counter')
-                .doc('clubIdCounter');
+            // Find the largest existing UID with 'c' prefix in the 'Users' collection
+            final userDocs =
+                await FirebaseFirestore.instance.collection('Users').get();
 
-            // Run a transaction to safely increment the counter
-            await FirebaseFirestore.instance
-                .runTransaction((transaction) async {
-              DocumentSnapshot counterSnapshot =
-                  await transaction.get(counterRef);
-
-              if (!counterSnapshot.exists) {
-                throw Exception("Counter document does not exist!");
+            int maxId = 0;
+            for (var doc in userDocs.docs) {
+              final uid = doc.id;
+              if (uid.startsWith('c')) {
+                final idPart = int.tryParse(uid.substring(1));
+                if (idPart != null && idPart > maxId) {
+                  maxId = idPart;
+                }
               }
+            }
 
-              int lastClubId = counterSnapshot['lastClubId'];
-              int newID = lastClubId + 1;
-              String creatorId = 'c$newID';
+            // Generate the new creatorId
+            int newId = maxId + 1;
+            String creatorId = 'c$newId';
 
-              // Update the counter document
-              transaction.update(counterRef, {'lastClubId': newID});
-
-              // Create a document under the specified collection
-              await FirebaseFirestore.instance
-                  .collection('Users')
-                  .doc(creatorId) // Document for account details
-                  .set({
-                'creatorId': creatorId, // Add the auto-incremented creatorID
-                'email': clubEmail,
-                'college': _selectedCollege,
-                'department': _selectedDepartment,
-                'creatorName': clubName,
-                'club': _selectedClub,
-                'creatorAccountType':
-                    _clubType, // Set the club name based on the club type
-                'password': password,
-                'approvalStatus': 'pending',
-              });
+            // Create a document under the specified collection
+            await FirebaseFirestore.instance
+                .collection('Users')
+                .doc(creatorId)
+                .set({
+              'creatorId': creatorId, // Auto-incremented creatorID
+              'email': clubEmail,
+              'college': _selectedCollege,
+              'department': _selectedDepartment,
+              'creatorName': clubName,
+              'club': _selectedClub,
+              'creatorAccountType': _clubType,
+              'password': password,
+              'approvalStatus': 'pending',
             });
 
             // Show success message
@@ -126,7 +120,7 @@ class _CreatorCreateAccountState extends State<CreatorCreateAccount> {
                       'Registration successful. Wait for the admin to verify your account')),
             );
 
-            // Clear all fields outside the transaction
+            // Clear all fields
             _clearFields();
 
             // Navigate back to LoginPage without stacking
