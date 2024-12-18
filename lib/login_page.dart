@@ -150,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               // Heading
                               Text(
-                                'Login',
+                                'AppDate',
                                 style: TextStyle(
                                   fontSize: screenWidth *
                                       0.08, // Adjust font size based on screen width

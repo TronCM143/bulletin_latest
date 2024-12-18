@@ -180,7 +180,19 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
         title: Text(
           'Bulletin Board',
           style: const TextStyle(
-              fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+            fontSize: 26, // Font size
+            fontWeight: FontWeight.bold, // Bold font weight
+            color: Colors.white, // Text color
+            fontFamily: 'Roboto', // Custom font family (optional)
+            letterSpacing: 1.2, // Letter spacing for a more spread-out look
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0), // Shadow position
+                blurRadius: 5.0, // Blur effect for the shadow
+                color: Colors.black45, // Shadow color
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -359,7 +371,8 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                       if (postData['imageUrls'] != null &&
                           (postData['imageUrls'] as List).isNotEmpty)
                         SizedBox(
-                          height: 100, // Adjust height as needed
+                          height: MediaQuery.of(context).size.width *
+                              0.5, // Responsive height
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: (postData['imageUrls'] as List).length,
@@ -368,17 +381,24 @@ class _CreatorHomePageState extends State<CreatorHomePage> {
                                 onTap: () {
                                   _showImagesPreview(
                                     context,
-                                    List<String>.from(postData['imageUrls']),
+                                    (postData['imageUrls'] as List)
+                                        .map((e) => e.toString())
+                                        .toList(),
                                     imageIndex,
                                   );
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
-                                  child: Image.network(
-                                    postData['imageUrls'][imageIndex],
-                                    width: 100, // Image width
-                                    height: 100, // Image height
-                                    fit: BoxFit.cover,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    child: Image.network(
+                                      (postData['imageUrls']
+                                          as List)[imageIndex],
+                                      fit: BoxFit
+                                          .cover, // Adjust image to cover its container
+                                      width: MediaQuery.of(context).size.width *
+                                          0.8, // Fit screen width
+                                    ),
                                   ),
                                 ),
                               );

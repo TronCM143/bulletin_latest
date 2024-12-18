@@ -63,14 +63,21 @@ class UserPostsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment
+                              .start, // Aligns title and delete button to the top
                           children: [
-                            Text(
-                              post['title'] ?? 'Untitled',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                            Expanded(
+                              child: Text(
+                                post['title'] ?? 'Untitled',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                                softWrap:
+                                    true, // Allows text to wrap to the next line
+                                overflow: TextOverflow
+                                    .visible, // Ensures the text doesn't get truncated
                               ),
                             ),
                             IconButton(
@@ -79,6 +86,7 @@ class UserPostsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
+
                         Text(
                           post['content'] ?? 'No content',
                           style: const TextStyle(
@@ -173,6 +181,19 @@ class UserPostsScreen extends StatelessWidget {
 
                             final approvals = approvalSnapshot.data!.docs;
 
+                            // Sort the approvals by hierarchy order using the getHierarchyOrder function
+                            approvals.sort((a, b) {
+                              final adminIdA = a['adminId'];
+                              final adminIdB = b['adminId'];
+
+                              // Get the hierarchy order for each adminId
+                              int orderA = getHierarchyOrder(adminIdA);
+                              int orderB = getHierarchyOrder(adminIdB);
+
+                              // Sort in ascending order based on the hierarchy
+                              return orderA.compareTo(orderB);
+                            });
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: approvals.map((approval) {
@@ -183,12 +204,24 @@ class UserPostsScreen extends StatelessWidget {
 
                                 return Padding(
                                   padding: const EdgeInsets.only(
-                                      bottom: 0), // Reduced space between items
+                                      bottom:
+                                          2), // Adjust the padding to control the vertical space
                                   child: ListTile(
-                                    contentPadding: EdgeInsets.symmetric(
-                                        vertical: 0,
-                                        horizontal: 8), // Reduced padding
-                                    title: Text(adminId),
+                                    dense:
+                                        true, // Makes the ListTile more compact
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical:
+                                          0, // Reduced vertical padding to bring elements closer
+                                      horizontal:
+                                          4, // Adjust horizontal padding if needed
+                                    ),
+                                    title: Text(
+                                      adminId,
+                                      style: const TextStyle(
+                                        fontSize:
+                                            14, // Adjust text size for compactness
+                                      ),
+                                    ),
                                     trailing: getApprovalStatusIcon(status),
                                   ),
                                 );
@@ -206,6 +239,31 @@ class UserPostsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  int getHierarchyOrder(String username) {
+    const hierarchy = [
+      'MOD_Kariktan',
+      'MOD_Kutitap Theatre',
+      'MOD_PSITS',
+      'MOD_JPIA',
+      'MOD_BLIS',
+      'MOD_PICE',
+      'MOD_CSD',
+      'MOD_SEAS',
+      'MOD_SSG',
+      'CEAC_DEAN',
+      'CAS_DEAN',
+      'CBA_DEAN',
+      'CED_DEAN',
+      'QAPS',
+      'DSA',
+      'ACAD_VP',
+      'VP_ADMIN'
+    ];
+
+    return hierarchy.indexOf(
+        username); // Return the index of the username in the hierarchy list
   }
 
   void _deletePost(BuildContext context, String postId) async {

@@ -1,9 +1,9 @@
-import 'package:bulletin/student%20folder/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../login_page.dart';
 import 'functions.dart';
+import 'settings.dart';
 
 class StudentProfileDialog extends StatefulWidget {
   final String firstName;
@@ -11,18 +11,19 @@ class StudentProfileDialog extends StatefulWidget {
   final String email;
   final String college;
   final String department;
-  final String club; // Add department here
-  final String schoolId; // Add schoolId here
+  final String club;
+  final String schoolId;
 
-  const StudentProfileDialog(
-      {super.key,
-      required this.firstName,
-      required this.lastName,
-      required this.email,
-      required this.department,
-      required this.schoolId,
-      required this.college,
-      required this.club});
+  const StudentProfileDialog({
+    super.key,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.department,
+    required this.schoolId,
+    required this.college,
+    required this.club,
+  });
 
   @override
   _StudentProfileDialogState createState() => _StudentProfileDialogState();
@@ -35,7 +36,12 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
   @override
   void initState() {
     super.initState();
-    loadProfileImage(widget.schoolId, (url) {
+    _loadProfileImage(widget.schoolId);
+  }
+
+  // Loads the profile image from a URL if it exists
+  void _loadProfileImage(String schoolId) {
+    loadProfileImage(schoolId, (url) {
       setState(() {
         _profileImageURL = url;
       });
@@ -48,129 +54,128 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      backgroundColor: Colors.white.withOpacity(0.95),
+      backgroundColor: Colors.white,
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(20),
+            child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: constraints.maxHeight * 0.8,
-                maxWidth: constraints.maxWidth * 0.9,
+                maxHeight: constraints.maxHeight * 0.9,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Profile',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        _showImageSourceSelection(context);
-                      },
-                      child: CircleAvatar(
-                        radius: constraints.maxWidth * 0.15,
-                        backgroundImage: _profileImage != null
-                            ? FileImage(_profileImage!)
-                            : _profileImageURL != null
-                                ? NetworkImage(_profileImageURL!)
-                                : const AssetImage(
-                                        'assets/placeholder_avatar.png')
-                                    as ImageProvider,
-                        child: _profileImage == null && _profileImageURL == null
-                            ? const Icon(
-                                Icons.add_a_photo,
-                                size: 40,
-                                color: Colors.white70,
-                              )
-                            : null,
+              child: IntrinsicHeight(
+                // Ensures that the widgets are rendered flexibly.
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold),
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            _showImageSourceSelection(context);
+                          },
+                          child: CircleAvatar(
+                            radius: constraints.maxWidth * 0.15,
+                            backgroundImage: _profileImage != null
+                                ? FileImage(_profileImage!)
+                                : _profileImageURL != null
+                                    ? NetworkImage(_profileImageURL!)
+                                    : const AssetImage(
+                                            'assets/placeholder_avatar.png')
+                                        as ImageProvider,
+                            child: _profileImage == null &&
+                                    _profileImageURL == null
+                                ? const Icon(
+                                    Icons.add_a_photo,
+                                    size: 40,
+                                    color: Colors.white70,
+                                  )
+                                : null,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Name: ${widget.firstName} ${widget.lastName}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Email: ${widget.email}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'College: ${widget.college}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Department: ${widget.department}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Club: ${widget.club}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'School ID: ${widget.schoolId}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 20),
+                      Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.settings),
+                        title: const Text('Settings'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SettingsPage(
+                                schoolId: widget.schoolId,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.info_outline),
+                        title: const Text('About Us'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showAboutDialog(
+                            context: context,
+                            applicationName: 'Your App Name',
+                            applicationVersion: '1.0.0',
+                            applicationIcon: const Icon(Icons.info),
+                            children: const [
+                              Text('This is the About Us section of the app.'),
+                            ],
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.logout),
+                        title: const Text('Logout'),
+                        onTap: () {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                                builder: (context) => LoginPage()),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Name: ${widget.firstName} ${widget.lastName}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Email: ${widget.email}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'College: ${widget.college}', // Display department
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Department: ${widget.department}', // Display department
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Club: ${widget.club}', // Display department
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'School ID: ${widget.schoolId}', // Display school ID
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.settings),
-                    label: const Text('Settings'),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SettingsPage(
-                                  schoolId: widget.schoolId,
-                                )), // Navigate to the SettingsPage
-                      ); // Close the dialog
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.info_outline),
-                    label: const Text('About Us'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      showAboutDialog(
-                        context: context,
-                        applicationName: 'Your App Name',
-                        applicationVersion: '1.0.0',
-                        applicationIcon: const Icon(Icons.info),
-                        children: const [
-                          Text('This is the About Us section of the app.'),
-                        ],
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orangeAccent,
-                    ),
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Logout'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
           );
@@ -179,6 +184,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
     );
   }
 
+  // Function to show image source options (Gallery/Camera)
   void _showImageSourceSelection(BuildContext context) {
     showModalBottomSheet(
       context: context,

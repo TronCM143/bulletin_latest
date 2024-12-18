@@ -114,10 +114,22 @@ class _StudentHomePageState extends State<StudentHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        title: const Text(
+        title: Text(
           'Bulletin Board',
-          style: TextStyle(
-              fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(
+            fontSize: 26, // Font size
+            fontWeight: FontWeight.bold, // Bold font weight
+            color: Colors.white, // Text color
+            fontFamily: 'Roboto', // Custom font family (optional)
+            letterSpacing: 1.2, // Letter spacing for a more spread-out look
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0), // Shadow position
+                blurRadius: 5.0, // Blur effect for the shadow
+                color: Colors.black45, // Shadow color
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -221,7 +233,8 @@ class _StudentHomePageState extends State<StudentHomePage> {
                           if (postData['imageUrls'] != null &&
                               (postData['imageUrls'] as List).isNotEmpty)
                             SizedBox(
-                              height: 150,
+                              height: MediaQuery.of(context).size.width *
+                                  0.5, // Responsive height
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount:
@@ -230,19 +243,29 @@ class _StudentHomePageState extends State<StudentHomePage> {
                                   return GestureDetector(
                                     onTap: () {
                                       _showImagesPreview(
-                                          context,
-                                          (postData['imageUrls'] as List)
-                                              .map((e) => e.toString())
-                                              .toList(),
-                                          imageIndex);
+                                        context,
+                                        (postData['imageUrls'] as List)
+                                            .map((e) => e.toString())
+                                            .toList(),
+                                        imageIndex,
+                                      );
                                     },
                                     child: Padding(
                                       padding:
                                           const EdgeInsets.only(right: 8.0),
-                                      child: Image.network(
-                                        (postData['imageUrls']
-                                            as List)[imageIndex],
-                                        fit: BoxFit.cover,
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        child: Image.network(
+                                          (postData['imageUrls']
+                                              as List)[imageIndex],
+                                          fit: BoxFit
+                                              .cover, // Adjust image to cover its container
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.8, // Fit screen width
+                                        ),
                                       ),
                                     ),
                                   );
